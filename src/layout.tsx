@@ -10,13 +10,14 @@ import { StoreContext } from './mobx store/RootStore'
 
 const Layout = () => {
   const { connectStore } = useContext(StoreContext)
-  const { rushing, setRushing } = connectStore
+  const { rushing, setRushing, getTelegramUserData } = connectStore
   const location = useLocation()
   const home = location.pathname === '/'
   const mine = location.pathname === '/mine'
 
   useEffect(() => {
     telegramService.expandWebApp()
+    getTelegramUserData()
 
     setTimeout(() => {
       setRushing(false)
@@ -34,6 +35,13 @@ const Layout = () => {
       telegramService.WebApp?.BackButton.onClick(() => {}) // Clears any previously attached callback
     }
   }, [])
+
+  // useEffect(() => {
+  //   const userData = getTelegramUserData()
+  //   if (userData) {
+  //     userStore.setUser(userData)
+  //   }
+  // }, [])
 
   const handleBackButtonClick = () => {
     telegramService.showPopup(

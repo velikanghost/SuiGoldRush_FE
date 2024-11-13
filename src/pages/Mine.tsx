@@ -7,20 +7,21 @@ import { useNavigate } from 'react-router-dom'
 
 const Mine = () => {
   const navigate = useNavigate()
-  const { countStore } = useContext(StoreContext)
+  const { countStore, connectStore } = useContext(StoreContext)
   const { tapTractor, metrics } = countStore
+  const { userId } = connectStore
 
   const [isTossing, setIsTossing] = useState(false)
 
   const handleTractorClick = () => {
+    console.log(userId)
     if (metrics.energy === 0) {
       // Save to localStorage
       localStorage.setItem('userMetrics', JSON.stringify(metrics))
       telegramService.showPopup(
         {
           title: 'Out of Energy',
-          message:
-            'You are out of energy, upgrade your tractor in store to get more energy',
+          message: `id: ${userId} You are out of energy, upgrade your tractor in store to get more energy.`,
           buttons: [
             {
               id: 'close',
