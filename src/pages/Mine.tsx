@@ -14,7 +14,6 @@ const Mine = () => {
   const [isTossing, setIsTossing] = useState(false)
 
   const handleTractorClick = () => {
-    console.log(userId)
     if (metrics.energy === 0) {
       // Save to localStorage
       localStorage.setItem('userMetrics', JSON.stringify(metrics))
