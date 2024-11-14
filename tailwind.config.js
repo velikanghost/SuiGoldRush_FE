@@ -8,7 +8,7 @@ export default {
     },
     fontFamily: {
       headings: ['Frijole', 'system-ui'],
-      body: ['Poppins', 'sans serif'],
+      body: ['Raleway', 'sans serif'],
     },
     extend: {
       colors: {

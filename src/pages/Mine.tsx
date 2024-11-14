@@ -16,11 +16,12 @@ const Mine = () => {
   const handleTractorClick = () => {
     if (metrics.energy === 0) {
       // Save to localStorage
+      console.log('user', userId)
       localStorage.setItem('userMetrics', JSON.stringify(metrics))
       telegramService.showPopup(
         {
           title: 'Out of Energy',
-          message: `id: ${userId} You are out of energy, upgrade your tractor in store to get more energy.`,
+          message: `You are out of energy, upgrade your tractor in store to get more energy.`,
           buttons: [
             {
               id: 'close',
