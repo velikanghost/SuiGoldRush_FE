@@ -12,10 +12,16 @@ const Footer = () => {
     <footer className="relative z-20 w-full gap-4 p-4">
       {location.pathname === '/' && (
         <div className="flex justify-between mb-6 top">
-          <div className="grid place-items-center bg-[#42b72a] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]">
+          <div
+            onClick={() => navigate('/leaderboard')}
+            className="grid place-items-center bg-[#1d8109] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]"
+          >
             <MdLeaderboard size={32} color="gold" />
           </div>
-          <div className="grid place-items-center bg-[#42b72a] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]">
+          <div
+            onClick={() => navigate('/store')}
+            className="grid place-items-center bg-[#1d8109] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]"
+          >
             <MdStoreMallDirectory size={32} color="gold" />
           </div>
         </div>
@@ -23,7 +29,7 @@ const Footer = () => {
       <div className="flex justify-between bottom">
         <div
           onClick={() => navigate('/')}
-          className="grid place-items-center bg-[#42b72a] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]"
+          className="grid place-items-center bg-[#1d8109] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]"
         >
           <PiFarmFill size={32} color="gold" />
           <p className="font-semibold text-white text-[9px] font-headings">
@@ -32,20 +38,26 @@ const Footer = () => {
         </div>
         <div
           onClick={() => navigate('/mine')}
-          className="grid place-items-center bg-[#42b72a] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]"
+          className="grid place-items-center bg-[#1d8109] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]"
         >
           <GiAxeSwing size={32} color="gold" />
           <p className="font-semibold text-white text-[9px] font-headings">
             MINE
           </p>
         </div>
-        <div className="grid place-items-center bg-[#42b72a] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]">
+        <div
+          onClick={() => navigate('/tasks')}
+          className="grid place-items-center bg-[#1d8109] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]"
+        >
           <FaTasks size={32} color="gold" />
           <p className="font-semibold text-white text-[9px] font-headings">
             TASK
           </p>
         </div>
-        <div className="grid place-items-center bg-[#42b72a] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]">
+        <div
+          onClick={() => navigate('/invites')}
+          className="grid place-items-center bg-[#1d8109] border-[#8cc63f] border-2 rounded-[4px] p-1 w-[70px] h-[70px]"
+        >
           <MdPostAdd size={32} color="gold" />
           <p className="font-semibold text-white text-[9px] font-headings">
             INVITE

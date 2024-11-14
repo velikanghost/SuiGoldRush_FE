@@ -9,11 +9,14 @@ export function cn(...inputs: ClassValue[]) {
 class TelegramService {
   private static instance: TelegramService
   public WebApp: typeof window.Telegram.WebApp | null = null
+  public initDataUnsafe: typeof window.Telegram.WebApp.initDataUnsafe | null =
+    null
 
   private constructor() {
     // Only assign if Telegram is available
     if (window.Telegram?.WebApp) {
       this.WebApp = window.Telegram.WebApp
+      this.initDataUnsafe = window.Telegram.WebApp.initDataUnsafe
     }
   }
 

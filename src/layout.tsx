@@ -9,8 +9,9 @@ import { observer } from 'mobx-react-lite'
 import { StoreContext } from './mobx store/RootStore'
 
 const Layout = () => {
-  const { connectStore } = useContext(StoreContext)
+  const { connectStore, countStore } = useContext(StoreContext)
   const { rushing, setRushing, getTelegramUserData } = connectStore
+  const { syncMetricsToDb, metrics } = countStore
   const location = useLocation()
   const home = location.pathname === '/'
   const mine = location.pathname === '/mine'
@@ -36,14 +37,8 @@ const Layout = () => {
     }
   }, [])
 
-  // useEffect(() => {
-  //   const userData = getTelegramUserData()
-  //   if (userData) {
-  //     userStore.setUser(userData)
-  //   }
-  // }, [])
-
-  const handleBackButtonClick = () => {
+  const handleBackButtonClick = async () => {
+    await syncMetricsToDb(metrics)
     telegramService.showPopup(
       {
         title: 'Confirm Close',
@@ -75,7 +70,7 @@ const Layout = () => {
 
   return (
     <div
-      className={home ? 'home_section' : mine ? 'mine_section' : ''}
+      className={home ? 'home_section' : mine ? 'mine_section' : 'home_section'}
       style={{
         display: 'flex',
         flexDirection: 'column',

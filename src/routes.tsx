@@ -2,8 +2,11 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import ErrorPage from './error-page'
 import Home from './pages/Home'
 import Mine from './pages/Mine'
-import WalletApp from './pages/WalletApp'
 import Layout from './layout'
+import Tasks from './pages/Tasks'
+import Invites from './pages/Invites'
+import Leaderboard from './pages/Leaderboard'
+import Store from './pages/Store'
 
 const router = createBrowserRouter([
   {
@@ -20,8 +23,20 @@ const router = createBrowserRouter([
         element: <Mine />,
       },
       {
-        path: '/task',
-        element: <WalletApp />,
+        path: '/tasks',
+        element: <Tasks />,
+      },
+      {
+        path: '/invites',
+        element: <Invites />,
+      },
+      {
+        path: '/leaderboard',
+        element: <Leaderboard />,
+      },
+      {
+        path: '/store',
+        element: <Store />,
       },
     ],
   },
