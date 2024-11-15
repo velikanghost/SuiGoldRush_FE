@@ -7,6 +7,7 @@ import Tasks from './pages/Tasks'
 import Invites from './pages/Invites'
 import Leaderboard from './pages/Leaderboard'
 import Store from './pages/Store'
+import WalletApp from './pages/WalletApp'
 
 const router = createBrowserRouter([
   {
@@ -39,6 +40,10 @@ const router = createBrowserRouter([
         element: <Store />,
       },
     ],
+  },
+  {
+    path: '/wallet',
+    element: <WalletApp />,
   },
 ])
 

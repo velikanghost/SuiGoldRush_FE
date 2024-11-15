@@ -10,6 +10,37 @@ body {
   box-sizing: border-box;
 }
 
+.btn_primary {
+  background-color: #3d2c24;
+  color: #f3f0e5;
+  border: 1px solid #5c4f3a;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn_primary:hover {
+  background-color: #2a1f1a;
+}
+
+.btn_secondary {
+  background-color: transparent;
+  color: #3d2c24;
+  border: 1px solid #3d2c24;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn_secondary:hover {
+  background-color: #5c4f3a;
+  color: #f3f0e5;
+}
+
 .transparent {
   background: transparent;
 }
