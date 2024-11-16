@@ -96,8 +96,7 @@ const WalletApp = () => {
   }, [walletAddress])
 
   useEffect(() => {
-    const encryptedPass = localStorage.getItem('pass')
-    if (encryptedPass) walletStore.unlockWallet(encryptedPass)
+    walletStore.unlockWallet()
   }, [])
 
   return (

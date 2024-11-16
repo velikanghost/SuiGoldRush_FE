@@ -1,5 +1,5 @@
 //import axios from 'axios'
-import { makeAutoObservable } from 'mobx'
+import { makeAutoObservable, runInAction } from 'mobx'
 import * as bip39 from 'bip39'
 import { derivePath } from 'ed25519-hd-key'
 import CryptoJS from 'crypto-js'
@@ -23,9 +23,19 @@ export class WalletStore {
     type: '',
     text: '',
   }
+  encryptedKey: any = null
+  encryptedPass: any = null
 
   constructor() {
     makeAutoObservable(this)
+    const wallet = localStorage.getItem('wallet')
+    const pass = localStorage.getItem('pass')
+    if (wallet) {
+      runInAction(() => {
+        this.encryptedKey = wallet
+        this.encryptedPass = pass
+      })
+    }
   }
 
   //TODO:
@@ -63,22 +73,24 @@ export class WalletStore {
     localStorage.setItem('wallet', encryptedKey)
   }
 
-  unlockWallet = async (encryptedPass: any) => {
-    const encryptedKey = localStorage.getItem('wallet')
-    if (!encryptedKey) {
+  unlockWallet = async () => {
+    //const encryptedKey = localStorage.getItem('wallet')
+
+    if (!this.encryptedKey) {
       this.setWallet(null)
       return
     }
 
     try {
       const pwd = CryptoJS.AES.decrypt(
-        encryptedPass,
+        this.encryptedPass,
         import.meta.env.VITE_APP_PASS_HASH,
       ).toString(CryptoJS.enc.Utf8)
 
-      const decryptedSeed = CryptoJS.AES.decrypt(encryptedKey!, pwd).toString(
-        CryptoJS.enc.Utf8,
-      )
+      const decryptedSeed = CryptoJS.AES.decrypt(
+        this.encryptedKey,
+        pwd,
+      ).toString(CryptoJS.enc.Utf8)
       const { key } = derivePath("m/44'/784'/0'/0'/0'", decryptedSeed)
       const keypair = Ed25519Keypair.fromSecretKey(Uint8Array.from(key))
       this.setWallet(keypair)

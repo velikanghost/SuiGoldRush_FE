@@ -10,7 +10,13 @@ import { StoreContext } from './mobx store/RootStore'
 
 const Layout = () => {
   const { connectStore, countStore } = useContext(StoreContext)
-  const { rushing, setRushing, getTelegramUserData, userMetrics } = connectStore
+  const {
+    rushing,
+    setRushing,
+    getTelegramUserData,
+    getLeaderboard,
+    userMetrics,
+  } = connectStore
   const { syncMetricsToDb } = countStore
   const location = useLocation()
   const home = location.pathname === '/'
@@ -19,6 +25,7 @@ const Layout = () => {
   useEffect(() => {
     telegramService.expandWebApp()
     getTelegramUserData()
+    getLeaderboard()
 
     setTimeout(() => {
       setRushing(false)
