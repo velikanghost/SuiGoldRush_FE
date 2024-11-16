@@ -103,7 +103,7 @@ export class ConnectStore {
           //console.log('higher: ', toJS(higherCoinsObject))
           this.setUserMetrics(higherCoinsObject)
         } else {
-          this.setUserMetrics(this.localMetrics)
+          this.setUserMetrics(res.data?.stats)
         }
         this.setTractor(res.data?.tractor)
       }
