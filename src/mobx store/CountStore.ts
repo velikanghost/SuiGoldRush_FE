@@ -1,35 +1,25 @@
-import { UserMetrics, Tractor } from '@/lib/types/all'
 import { makeAutoObservable, runInAction } from 'mobx'
 import telegramService from '../lib/utils'
-//import axios from 'axios'
+import { ConnectStore } from './ConnectStore'
+import { Metrics } from '@/lib/types/all'
+import axios from 'axios'
 
 export class CountStore {
+  connectStore: ConnectStore
   API_KEY = import.meta.env.VITE_APP_API_KEY
   BASE_URL = import.meta.env.VITE_APP_BASE_URL
   count: number = 0
   tapCost: number = 0
 
-  metrics: UserMetrics = {
-    coins: 0,
-    energy: 150,
-    energyLimit: 150,
-    energyRegenRate: 0,
-  }
-
-  tractor: Tractor = {
-    level: 1,
-    energyRegenBonus: 0,
-    coinMultiplier: 1,
-  }
-
-  constructor() {
+  constructor(connectStore: ConnectStore) {
+    this.connectStore = connectStore
     makeAutoObservable(this)
 
     // Load saved metrics from localStorage on store initialization
     const savedMetrics = localStorage.getItem('userMetrics')
     if (savedMetrics) {
       runInAction(() => {
-        this.metrics = JSON.parse(savedMetrics)
+        this.connectStore.userMetrics = JSON.parse(savedMetrics)
       })
     }
 
@@ -37,62 +27,54 @@ export class CountStore {
   }
 
   tapTractor = () => {
-    if (this.metrics.energy > 0) {
-      this.metrics.coins += this.tractor.coinMultiplier
-      this.metrics.energy -= 1
+    if (this.connectStore.userMetrics.energy > 0) {
+      this.connectStore.userMetrics.gold_coins +=
+        this.connectStore.tractor.multiplier
+      this.connectStore.userMetrics.energy -= 1
       this.saveMetrics() // Save metrics to localStorage after update
     }
   }
 
-  //  {
-  //     Accept: 'application/json',
-  //     Authorization: `Bearer ${this.token}`,
-  //     'Content-Type': 'application/json',
-
-  //           'x-api-key': this.API_KEY,
-  //   }
-
-  syncMetricsToDb = async (metrics: UserMetrics) => {
+  syncMetricsToDb = async (metrics: Metrics) => {
     const userId = telegramService.initDataUnsafe?.user?.id
     const data = {
       user_id: userId,
-      tap_count: metrics.coins,
+      tap_count: metrics.gold_coins,
       energy: metrics.energy,
     }
 
     try {
-      console.log('fromsync ', data)
-      // const res = await axios.post(`/api/sync-tap`, data, {
-      //   headers: {
-      //     Accept: 'application/json',
-      //     Authorization: this.API_KEY,
-      //     'Content-Type': 'application/json',
-      //   },
-      // })
-      // console.log(res)
+      const res = await axios.post(`${this.BASE_URL}/api/sync-tap`, data, {
+        headers: {
+          Accept: 'application/json',
+          'x-api-key': this.API_KEY,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      console.log(res.data?.status)
     } catch (error) {
       console.log(error)
     }
   }
 
   upgradeTractor = () => {
-    this.tractor.level += 1
-    this.tractor.energyRegenBonus += 1000 // energy bonus
-    this.tractor.coinMultiplier += 1
-    this.metrics.energyLimit += 1000
+    this.connectStore.tractor.upgrade_level += 1
+    this.connectStore.tractor.multiplier += 1
+    this.connectStore.userMetrics.max_energy += 1000
     this.saveMetrics() // Save metrics to localStorage after update
   }
 
   resetEnergy = () => {
-    this.metrics.energy = Math.min(
-      this.metrics.energy + this.metrics.energyRegenRate,
-      this.metrics.energyLimit,
+    this.connectStore.userMetrics.energy = Math.min(
+      this.connectStore.userMetrics.max_energy,
     )
     this.saveMetrics() // Save metrics to localStorage after update
   }
 
   dailyReset = () => {
-    this.metrics.energy = this.metrics.energyLimit
+    this.connectStore.userMetrics.energy =
+      this.connectStore.userMetrics.max_energy
     this.saveMetrics() // Save metrics to localStorage after reset
   }
 
@@ -112,6 +94,9 @@ export class CountStore {
 
   // Save the current metrics to localStorage
   private saveMetrics = () => {
-    localStorage.setItem('userMetrics', JSON.stringify(this.metrics))
+    localStorage.setItem(
+      'userMetrics',
+      JSON.stringify(this.connectStore.userMetrics),
+    )
   }
 }

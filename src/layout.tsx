@@ -10,8 +10,8 @@ import { StoreContext } from './mobx store/RootStore'
 
 const Layout = () => {
   const { connectStore, countStore } = useContext(StoreContext)
-  const { rushing, setRushing, getTelegramUserData } = connectStore
-  const { syncMetricsToDb, metrics } = countStore
+  const { rushing, setRushing, getTelegramUserData, userMetrics } = connectStore
+  const { syncMetricsToDb } = countStore
   const location = useLocation()
   const home = location.pathname === '/'
   const mine = location.pathname === '/mine'
@@ -38,7 +38,7 @@ const Layout = () => {
   }, [])
 
   const handleBackButtonClick = async () => {
-    await syncMetricsToDb(metrics)
+    await syncMetricsToDb(userMetrics)
     telegramService.showPopup(
       {
         title: 'Confirm Close',
