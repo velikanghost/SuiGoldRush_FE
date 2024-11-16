@@ -1,4 +1,4 @@
-import { Metrics, Tractor, User } from '@/lib/types/all'
+import { Leaderboard, Metrics, Tractor, User } from '@/lib/types/all'
 import axios from 'axios'
 import { makeAutoObservable, runInAction } from 'mobx'
 
@@ -61,6 +61,8 @@ export class ConnectStore {
     price: 0,
   }
 
+  leaderboard: Leaderboard[] = []
+
   constructor() {
     makeAutoObservable(this)
     // Load saved metrics from localStorage on store initialization
@@ -112,6 +114,24 @@ export class ConnectStore {
     }
   }
 
+  getLeaderboard = async () => {
+    try {
+      const res = await axios.get(`${this.BASE_URL}/api/leaderboard`, {
+        headers: {
+          Accept: 'application/json',
+          'x-api-key': this.API_KEY,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      this.setLeaderboard(res.data)
+
+      console.log(res.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   setUser = (data: User) => {
     this.user = data
   }
@@ -122,6 +142,10 @@ export class ConnectStore {
 
   setTractor = (data: Tractor) => {
     this.tractor = data
+  }
+
+  setLeaderboard = (data: Leaderboard[]) => {
+    this.leaderboard = data
   }
 
   setRushing = (value: boolean) => {

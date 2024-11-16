@@ -30,7 +30,7 @@ const Store = () => {
             <p>Wallet</p>
             <IoMdArrowRoundForward className="animate-bounce" size={28} />
           </div>
-          <div className="relative h-full w-[93%] rounded mx-auto bg-[#0a3d00]/50 border border-[#8cc63f] p-4 flex flex-col">
+          <div className="relative h-full w-[93%] rounded mx-auto bg-[#0a3d00]/50 border border-[#8cc63f] p-4 flex flex-col overflow-y-auto">
             <div className="pb-4 border-b border-[#ffd700]">
               <h1 className="pb-2 text-3xl font-bold text-[#ffd700] font-body">
                 Study Power-ups
@@ -38,6 +38,53 @@ const Store = () => {
               <p className="font-semibold text-[#e0d6b9]">
                 You get even more gold coins!
               </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between">
+                <img
+                  src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731423602/tractor_dqo8q7.png"
+                  className="transition-transform duration-200"
+                  alt="tractor"
+                />
+                <p className="py-2 text-sm font-semibold">+5000 Energy</p>
+                <button className="w-full buy_btn">BUY for $5</button>
+              </div>
+              <div className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between">
+                <img
+                  src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731773810/tractor2_ckfx43.png"
+                  className="transition-transform duration-200"
+                  alt="tractor"
+                />
+                <p className="py-2 text-sm font-semibold">+5000 Energy</p>
+                <button className="w-full buy_btn">BUY for $5</button>
+              </div>
+              <div className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between">
+                <img
+                  src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731423602/tractor_dqo8q7.png"
+                  className="transition-transform duration-200"
+                  alt="tractor"
+                />
+                <p className="py-2 text-sm font-semibold">+5000 Energy</p>
+                <button className="w-full buy_btn">BUY for $5</button>
+              </div>
+              <div className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between">
+                <img
+                  src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731773810/tractor2_ckfx43.png"
+                  className="transition-transform duration-200"
+                  alt="tractor"
+                />
+                <p className="py-2 text-sm font-semibold">+5000 Energy</p>
+                <button className="w-full buy_btn">BUY for $5</button>
+              </div>
+              <div className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between">
+                <img
+                  src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731423602/tractor_dqo8q7.png"
+                  className="transition-transform duration-200"
+                  alt="tractor"
+                />
+                <p className="py-2 text-sm font-semibold">+5000 Energy</p>
+                <button className="w-full buy_btn">BUY for $5</button>
+              </div>
             </div>
           </div>
         </>

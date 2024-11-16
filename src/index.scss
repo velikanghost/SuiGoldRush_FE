@@ -41,6 +41,22 @@ body {
   color: #f3f0e5;
 }
 
+.buy_btn {
+  background-color: #3d2c24;
+  color: #f3f0e5;
+  border: 1px solid #5c4f3a;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.buy_btn:hover {
+  background-color: #2a1f1a;
+}
+
 .transparent {
   background: transparent;
 }

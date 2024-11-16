@@ -28,3 +28,9 @@ export interface Tractor {
   image_url: string
   price: number
 }
+
+export interface Leaderboard {
+  telegram_id: number
+  username: string
+  gold_coins: number
+}
