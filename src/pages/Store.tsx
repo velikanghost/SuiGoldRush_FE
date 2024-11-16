@@ -4,7 +4,7 @@ import { IoMdArrowRoundForward } from 'react-icons/io'
 
 const Store = () => {
   const navigate = useNavigate()
-  const hasWallet = localStorage.getItem('wallet') !== ''
+  const hasWallet = localStorage.getItem('wallet') !== null
 
   const handleConnectWallet = () => {
     navigate('/wallet')

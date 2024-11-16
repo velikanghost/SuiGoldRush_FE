@@ -10,7 +10,7 @@ interface StoreContextInterface {
 }
 
 const connectStore = new ConnectStore()
-const countStore = new CountStore()
+const countStore = new CountStore(connectStore)
 const walletStore = new WalletStore()
 
 export const StoreContext = createContext<StoreContextInterface>({

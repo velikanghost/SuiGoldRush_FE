@@ -281,7 +281,7 @@ const WalletApp = () => {
       ) : (
         <div className="flex flex-col justify-center items-center gap-5 h-[100vh]">
           <nav className="absolute top-0 right-0 px-6 pt-4">
-            <MdExitToApp onClick={() => navigate('/')} size={32} />
+            <MdExitToApp onClick={() => navigate('/store')} size={32} />
           </nav>
 
           <Dialog>
