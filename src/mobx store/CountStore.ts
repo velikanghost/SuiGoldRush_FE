@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction } from 'mobx'
+import { makeAutoObservable } from 'mobx'
 import telegramService from '../lib/utils'
 import { ConnectStore } from './ConnectStore'
 import { Metrics } from '@/lib/types/all'
@@ -15,13 +15,13 @@ export class CountStore {
     this.connectStore = connectStore
     makeAutoObservable(this)
 
-    // Load saved metrics from localStorage on store initialization
-    const savedMetrics = localStorage.getItem('userMetrics')
-    if (savedMetrics) {
-      runInAction(() => {
-        this.connectStore.userMetrics = JSON.parse(savedMetrics)
-      })
-    }
+    // // Load saved metrics from localStorage on store initialization
+    // const savedMetrics = localStorage.getItem('userMetrics')
+    // if (savedMetrics) {
+    //   runInAction(() => {
+    //     this.connectStore.userMetrics = JSON.parse(savedMetrics)
+    //   })
+    // }
 
     this.startDailyResetTimer() // Start daily reset timer
   }
