@@ -81,12 +81,12 @@ export class WalletStore {
     const keypair = Ed25519Keypair.fromSecretKey(Uint8Array.from(key))
 
     // Logging mnemonic, seed, and public address
-    console.log('Mnemonic (readable):', mnemonic)
-    console.log('Seed (readable):', seed.toString('hex'))
-    console.log(
-      'Public Address (create):',
-      keypair.getPublicKey().toSuiAddress(),
-    )
+    // console.log('Mnemonic (readable):', mnemonic)
+    // console.log('Seed (readable):', seed.toString('hex'))
+    // console.log(
+    //   'Public Address (create):',
+    //   keypair.getPublicKey().toSuiAddress(),
+    // )
     this.setWalletSeedPhrase(mnemonic)
     this.setWallet(keypair)
     this.setWalletAddress(keypair.getPublicKey().toSuiAddress())
@@ -160,11 +160,11 @@ export class WalletStore {
       const keypair = Ed25519Keypair.deriveKeypair(decryptedSeed)
 
       // Logging decrypted seed and public address
-      console.log('Decrypted Seed (readable):', decryptedSeed)
-      console.log(
-        'Public Address (unlock):',
-        keypair.getPublicKey().toSuiAddress(),
-      )
+      // console.log('Decrypted Seed (readable):', decryptedSeed)
+      // console.log(
+      //   'Public Address (unlock):',
+      //   keypair.getPublicKey().toSuiAddress(),
+      // )
 
       this.setWallet(keypair)
       this.setWalletAddress(keypair.getPublicKey().toSuiAddress())
