@@ -1,7 +1,6 @@
 import { makeAutoObservable } from 'mobx'
 import telegramService from '../lib/utils'
 import { ConnectStore } from './ConnectStore'
-import { Metrics } from '@/lib/types/all'
 import axios from 'axios'
 
 export class CountStore {
@@ -14,16 +13,11 @@ export class CountStore {
   constructor(connectStore: ConnectStore) {
     this.connectStore = connectStore
     makeAutoObservable(this)
+    setInterval(() => {
+      this.syncMetricsToDb()
+    }, 900000)
 
-    // // Load saved metrics from localStorage on store initialization
-    // const savedMetrics = localStorage.getItem('userMetrics')
-    // if (savedMetrics) {
-    //   runInAction(() => {
-    //     this.connectStore.userMetrics = JSON.parse(savedMetrics)
-    //   })
-    // }
-
-    this.startDailyResetTimer() // Start daily reset timer
+    //this.startDailyResetTimer() // Start daily reset timer
   }
 
   tapTractor = () => {
@@ -35,12 +29,12 @@ export class CountStore {
     }
   }
 
-  syncMetricsToDb = async (metrics: Metrics) => {
+  syncMetricsToDb = async () => {
     const userId = telegramService.initDataUnsafe?.user?.id
     const data = {
       user_id: userId,
-      tap_count: metrics.gold_coins,
-      energy: metrics.energy,
+      tap_count: this.connectStore.userMetrics.gold_coins,
+      energy: this.connectStore.userMetrics.energy,
     }
 
     try {
@@ -52,7 +46,7 @@ export class CountStore {
         },
       })
 
-      console.log(res.data?.status)
+      console.log(res.data)
     } catch (error) {
       console.log(error)
     }

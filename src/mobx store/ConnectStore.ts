@@ -6,6 +6,15 @@ export class ConnectStore {
   API_KEY = import.meta.env.VITE_APP_API_KEY
   BASE_URL = import.meta.env.VITE_APP_BASE_URL
   rushing: boolean = true
+  localMetrics: Metrics = {
+    gold_coins: 0,
+    user_rank: 0,
+    referral_count: 0,
+    upgrade_level: 0,
+    energy: 0,
+    max_energy: 0,
+  }
+
   user: User = {
     id: 0,
     telegram_id: 0,
@@ -32,16 +41,6 @@ export class ConnectStore {
       price: 0,
     },
   }
-
-  localMetrics: Metrics = {
-    gold_coins: 0,
-    user_rank: 0,
-    referral_count: 0,
-    upgrade_level: 0,
-    energy: 0,
-    max_energy: 0,
-  }
-
   userMetrics: Metrics = {
     gold_coins: 0,
     user_rank: 0,
@@ -50,7 +49,6 @@ export class ConnectStore {
     energy: 0,
     max_energy: 0,
   }
-
   tractor: Tractor = {
     id: 0,
     name: '',
@@ -61,6 +59,7 @@ export class ConnectStore {
     price: 0,
   }
 
+  tractors: Tractor[] = []
   leaderboard: Leaderboard[] = []
 
   constructor() {
@@ -102,7 +101,6 @@ export class ConnectStore {
             : null
 
         if (higherCoinsObject) {
-          //console.log('higher: ', toJS(higherCoinsObject))
           this.setUserMetrics(higherCoinsObject)
         } else {
           this.setUserMetrics(res.data?.stats)
@@ -126,7 +124,25 @@ export class ConnectStore {
 
       this.setLeaderboard(res.data)
 
-      console.log(res.data)
+      //console.log(res.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  getTractors = async () => {
+    try {
+      const res = await axios.get(`${this.BASE_URL}/api/tractors`, {
+        headers: {
+          Accept: 'application/json',
+          'x-api-key': this.API_KEY,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      this.setTractors(res.data)
+
+      //console.log(res.data)
     } catch (error) {
       console.log(error)
     }
@@ -146,6 +162,10 @@ export class ConnectStore {
 
   setLeaderboard = (data: Leaderboard[]) => {
     this.leaderboard = data
+  }
+
+  setTractors = (data: Tractor[]) => {
+    this.tractors = data
   }
 
   setRushing = (value: boolean) => {

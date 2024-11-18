@@ -47,56 +47,129 @@ export class WalletStore {
   encrypt pass before saving to LS
   */
 
+  // createWallet = async (pwd: string) => {
+  //   // Generate a 12-word mnemonic
+  //   const mnemonic = bip39.generateMnemonic()
+  //   //console.log('Mnemonic:', mnemonic)
+
+  //   // Generate seed from mnemonic
+  //   const seed = await bip39.mnemonicToSeed(mnemonic)
+
+  //   // Derive a keypair using a standard path
+  //   const path = "m/44'/784'/0'/0'/0'"
+  //   const { key } = derivePath(path, seed.toString('hex'))
+
+  //   // Initialize the keypair with the derived secret key
+  //   const keypair = Ed25519Keypair.fromSecretKey(Uint8Array.from(key))
+  //   this.setWalletSeedPhrase(mnemonic)
+  //   this.setWallet(keypair)
+  //   this.setWalletAddress(keypair.getPublicKey().toSuiAddress())
+  //   const encryptedKey = CryptoJS.AES.encrypt(seed.toString(), pwd).toString()
+  //   const encryptedPass = CryptoJS.AES.encrypt(
+  //     pwd.toString(),
+  //     this.PASS_HASH,
+  //   ).toString()
+  //   localStorage.setItem('pass', encryptedPass)
+  //   localStorage.setItem('wallet', encryptedKey)
+  // }
+
   createWallet = async (pwd: string) => {
-    // Generate a 12-word mnemonic
     const mnemonic = bip39.generateMnemonic()
-    //console.log('Mnemonic:', mnemonic)
-
-    // Generate seed from mnemonic
     const seed = await bip39.mnemonicToSeed(mnemonic)
-
-    // Derive a keypair using a standard path
     const path = "m/44'/784'/0'/0'/0'"
     const { key } = derivePath(path, seed.toString('hex'))
-
-    // Initialize the keypair with the derived secret key
     const keypair = Ed25519Keypair.fromSecretKey(Uint8Array.from(key))
+
+    // Logging mnemonic, seed, and public address
+    // console.log('Mnemonic (readable):', mnemonic)
+    // console.log('Seed (readable):', seed.toString('hex'))
+    // console.log(
+    //   'Public Address (create):',
+    //   keypair.getPublicKey().toSuiAddress(),
+    // )
     this.setWalletSeedPhrase(mnemonic)
     this.setWallet(keypair)
     this.setWalletAddress(keypair.getPublicKey().toSuiAddress())
-    const encryptedKey = CryptoJS.AES.encrypt(seed.toString(), pwd).toString()
+
+    const encryptedKey = CryptoJS.AES.encrypt(mnemonic, pwd).toString()
     const encryptedPass = CryptoJS.AES.encrypt(
       pwd.toString(),
       this.PASS_HASH,
     ).toString()
-    localStorage.setItem('pass', encryptedPass)
-    localStorage.setItem('wallet', encryptedKey)
+
+    localStorage.clear() // Clear old data
+    localStorage.setItem('pass', encryptedPass) // Save encrypted pass
+    localStorage.setItem('wallet', encryptedKey) // Save encrypted seed
   }
 
-  unlockWallet = async () => {
-    //const encryptedKey = localStorage.getItem('wallet')
+  // unlockWallet = async () => {
+  //   //const encryptedKey = localStorage.getItem('wallet')
 
-    if (!this.encryptedKey) {
+  //   const encryptedKey = localStorage.getItem('wallet')
+  //   const encryptedPass = localStorage.getItem('pass')
+
+  //   console.log('ekey', encryptedKey)
+  //   if (!encryptedKey) {
+  //     this.setWallet(null)
+  //     return
+  //   }
+
+  //   try {
+  //     console.log('epass', encryptedPass)
+  //     const pwd = CryptoJS.AES.decrypt(
+  //       encryptedPass!,
+  //       import.meta.env.VITE_APP_PASS_HASH,
+  //     ).toString(CryptoJS.enc.Utf8)
+
+  //     console.log('pwd', pwd)
+
+  //     const decryptedSeed = CryptoJS.AES.decrypt(encryptedKey!, pwd).toString(
+  //       CryptoJS.enc.Utf8,
+  //     )
+
+  //     const { key } = derivePath("m/44'/784'/0'/0'/0'", decryptedSeed)
+  //     const keypair = Ed25519Keypair.fromSecretKey(Uint8Array.from(key))
+
+  //     console.log('kp', keypair.getPublicKey().toSuiAddress())
+  //     this.setWallet(keypair)
+  //     this.setWalletAddress(keypair.getPublicKey().toSuiAddress())
+  //   } catch (error) {
+  //     console.log(error)
+  //   }
+  // }
+
+  unlockWallet = async () => {
+    const encryptedKey = localStorage.getItem('wallet')
+    const encryptedPass = localStorage.getItem('pass')
+
+    if (!encryptedKey) {
       this.setWallet(null)
       return
     }
 
     try {
       const pwd = CryptoJS.AES.decrypt(
-        this.encryptedPass,
+        encryptedPass!,
         import.meta.env.VITE_APP_PASS_HASH,
       ).toString(CryptoJS.enc.Utf8)
+      const decryptedSeed = CryptoJS.AES.decrypt(encryptedKey!, pwd).toString(
+        CryptoJS.enc.Utf8,
+      )
 
-      const decryptedSeed = CryptoJS.AES.decrypt(
-        this.encryptedKey,
-        pwd,
-      ).toString(CryptoJS.enc.Utf8)
-      const { key } = derivePath("m/44'/784'/0'/0'/0'", decryptedSeed)
-      const keypair = Ed25519Keypair.fromSecretKey(Uint8Array.from(key))
+      // const { key } = derivePath("m/44'/784'/0'/0'/0'", decryptedSeed)
+      const keypair = Ed25519Keypair.deriveKeypair(decryptedSeed)
+
+      // Logging decrypted seed and public address
+      // console.log('Decrypted Seed (readable):', decryptedSeed)
+      // console.log(
+      //   'Public Address (unlock):',
+      //   keypair.getPublicKey().toSuiAddress(),
+      // )
+
       this.setWallet(keypair)
       this.setWalletAddress(keypair.getPublicKey().toSuiAddress())
     } catch (error) {
-      console.log(error)
+      console.error('Error during wallet unlocking:', error)
     }
   }
 
