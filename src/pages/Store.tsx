@@ -1,9 +1,13 @@
 import { observer } from 'mobx-react-lite'
 import { useNavigate } from 'react-router-dom'
 import { IoMdArrowRoundForward } from 'react-icons/io'
+import { StoreContext } from '@/mobx store/RootStore'
+import { useContext } from 'react'
 
 const Store = () => {
   const navigate = useNavigate()
+  const { connectStore } = useContext(StoreContext)
+  const { tractors } = connectStore
   const hasWallet = localStorage.getItem('wallet') !== null
 
   const handleConnectWallet = () => {
@@ -40,51 +44,24 @@ const Store = () => {
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between">
-                <img
-                  src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731423602/tractor_dqo8q7.png"
-                  className="transition-transform duration-200"
-                  alt="tractor"
-                />
-                <p className="py-2 text-sm font-semibold">+5000 Energy</p>
-                <button className="w-full buy_btn">BUY for $5</button>
-              </div>
-              <div className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between">
-                <img
-                  src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731773810/tractor2_ckfx43.png"
-                  className="transition-transform duration-200"
-                  alt="tractor"
-                />
-                <p className="py-2 text-sm font-semibold">+5000 Energy</p>
-                <button className="w-full buy_btn">BUY for $5</button>
-              </div>
-              <div className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between">
-                <img
-                  src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731423602/tractor_dqo8q7.png"
-                  className="transition-transform duration-200"
-                  alt="tractor"
-                />
-                <p className="py-2 text-sm font-semibold">+5000 Energy</p>
-                <button className="w-full buy_btn">BUY for $5</button>
-              </div>
-              <div className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between">
-                <img
-                  src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731773810/tractor2_ckfx43.png"
-                  className="transition-transform duration-200"
-                  alt="tractor"
-                />
-                <p className="py-2 text-sm font-semibold">+5000 Energy</p>
-                <button className="w-full buy_btn">BUY for $5</button>
-              </div>
-              <div className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between">
-                <img
-                  src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731423602/tractor_dqo8q7.png"
-                  className="transition-transform duration-200"
-                  alt="tractor"
-                />
-                <p className="py-2 text-sm font-semibold">+5000 Energy</p>
-                <button className="w-full buy_btn">BUY for $5</button>
-              </div>
+              {tractors.slice(1).map((tractor) => (
+                <div
+                  key={tractor.id}
+                  className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between"
+                >
+                  <img
+                    src={tractor.image_url}
+                    className="transition-transform duration-200"
+                    alt="tractor"
+                  />
+                  <p className="py-2 text-sm font-semibold">
+                    {tractor.max_energy} Energy
+                  </p>
+                  <button className="w-full buy_btn">
+                    BUY for {tractor.price} SUI
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </>

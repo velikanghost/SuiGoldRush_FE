@@ -91,9 +91,9 @@ const WalletApp = () => {
     await walletStore.createWallet(confirmPassword)
   }
 
-  useEffect(() => {
-    if (walletAddress) walletStore.getTokensInWallet()
-  }, [walletAddress])
+  // useEffect(() => {
+  //   if (walletAddress) walletStore.getTokensInWallet()
+  // }, [walletAddress])
 
   useEffect(() => {
     walletStore.unlockWallet()

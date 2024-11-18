@@ -15,7 +15,7 @@ const Layout = () => {
     setRushing,
     getTelegramUserData,
     getLeaderboard,
-    userMetrics,
+    getTractors,
   } = connectStore
   const { syncMetricsToDb } = countStore
   const location = useLocation()
@@ -26,6 +26,7 @@ const Layout = () => {
     telegramService.expandWebApp()
     getTelegramUserData()
     getLeaderboard()
+    getTractors()
 
     setTimeout(() => {
       setRushing(false)
@@ -45,7 +46,7 @@ const Layout = () => {
   }, [])
 
   const handleBackButtonClick = async () => {
-    await syncMetricsToDb(userMetrics)
+    await syncMetricsToDb()
     telegramService.showPopup(
       {
         title: 'Confirm Close',
