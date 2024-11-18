@@ -3,15 +3,24 @@ import { useNavigate } from 'react-router-dom'
 import { IoMdArrowRoundForward } from 'react-icons/io'
 import { StoreContext } from '@/mobx store/RootStore'
 import { useContext } from 'react'
+import { Tractor } from '@/lib/types/all'
 
 const Store = () => {
   const navigate = useNavigate()
-  const { connectStore } = useContext(StoreContext)
+  const { connectStore, walletStore } = useContext(StoreContext)
   const { tractors } = connectStore
   const hasWallet = localStorage.getItem('wallet') !== null
 
   const handleConnectWallet = () => {
     navigate('/wallet')
+  }
+
+  const handleBuyTractor = async (tractor: Tractor) => {
+    const res = await walletStore.beginPurchase(tractor)
+
+    if (res) {
+      navigate('/wallet?buydal=true')
+    }
   }
 
   return (
@@ -57,7 +66,10 @@ const Store = () => {
                   <p className="py-2 text-sm font-semibold">
                     {tractor.max_energy} Energy
                   </p>
-                  <button className="w-full buy_btn">
+                  <button
+                    onClick={() => handleBuyTractor(tractor)}
+                    className="w-full buy_btn"
+                  >
                     BUY for {tractor.price} SUI
                   </button>
                 </div>

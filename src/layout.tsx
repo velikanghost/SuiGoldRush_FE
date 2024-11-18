@@ -9,7 +9,7 @@ import { observer } from 'mobx-react-lite'
 import { StoreContext } from './mobx store/RootStore'
 
 const Layout = () => {
-  const { connectStore, countStore } = useContext(StoreContext)
+  const { connectStore, countStore, walletStore } = useContext(StoreContext)
   const {
     rushing,
     setRushing,
@@ -27,6 +27,7 @@ const Layout = () => {
     getTelegramUserData()
     getLeaderboard()
     getTractors()
+    walletStore.unlockWallet()
 
     setTimeout(() => {
       setRushing(false)

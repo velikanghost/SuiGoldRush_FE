@@ -1,3 +1,5 @@
+import { Transaction } from '@mysten/sui/transactions'
+
 export interface User {
   id: number
   telegram_id: number
@@ -33,4 +35,14 @@ export interface Leaderboard {
   telegram_id: number
   username: string
   gold_coins: number
+}
+
+export interface EstimatedTransaction {
+  from: string
+  to: string
+  gas: number
+  message: string
+  willFail: boolean
+  tx: Transaction
+  amount: number
 }

@@ -6,6 +6,8 @@ import CryptoJS from 'crypto-js'
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519'
 import { CoinStruct, getFullnodeUrl, SuiClient } from '@mysten/sui/client'
 import { requestSuiFromFaucetV0, getFaucetHost } from '@mysten/sui/faucet'
+import { Transaction } from '@mysten/sui/transactions'
+import { EstimatedTransaction, Tractor } from '@/lib/types/all'
 
 export class WalletStore {
   PASS_HASH = import.meta.env.VITE_APP_PASS_HASH
@@ -25,6 +27,10 @@ export class WalletStore {
   }
   encryptedKey: any = null
   encryptedPass: any = null
+  isEstimated: boolean = false
+  estimatedTransaction: EstimatedTransaction | undefined
+  completing: boolean = false
+  transactionFinalized: boolean = false
 
   constructor() {
     makeAutoObservable(this)
@@ -173,6 +179,109 @@ export class WalletStore {
     }
   }
 
+  convertGasUsedToReadable = (gasUsed: {
+    computationCost: string
+    storageCost: string
+    storageRebate: string
+  }) => {
+    const totalGasUsed =
+      Number(gasUsed.computationCost) +
+      Number(gasUsed.storageCost) -
+      Number(gasUsed.storageRebate)
+
+    const readableGas = totalGasUsed / 1e9
+    return readableGas
+  }
+
+  beginPurchase = async (tractor: Tractor) => {
+    const tx = new Transaction()
+
+    const amountToTransfer = tractor.price * 1e9
+
+    const [coin] = tx.splitCoins(tx.gas, [amountToTransfer])
+
+    tx.transferObjects(
+      [coin],
+      '0xdb61656f80d44aa85724650fd3f776407b2cd576fabd4f731d326eb6d9989f9c',
+    )
+
+    try {
+      const balance = await this.suiClient.getBalance({
+        owner: this.walletAddress,
+        coinType: '0x2::sui::SUI',
+      })
+
+      // Simulate the transaction block
+      const simulationResult = await this.suiClient.devInspectTransactionBlock({
+        sender: this.walletAddress,
+        transactionBlock: tx,
+      })
+
+      // Extract gas fees from simulation result
+      if (simulationResult.effects) {
+        const { gasUsed } = simulationResult.effects
+        const readableGas = this.convertGasUsedToReadable(gasUsed) * 1e9
+        const totalRequired = amountToTransfer + readableGas
+
+        // Compare
+        if (Number(balance.totalBalance) >= totalRequired) {
+          const data = {
+            from: this.walletAddress,
+            to: '0xdb61656f80d44aa85724650fd3f776407b2cd576fabd4f731d326eb6d9989f9c',
+            gas: readableGas,
+            message: 'User has enough SUI to proceed with the transaction.',
+            willFail: false,
+            tx: tx,
+            amount: amountToTransfer,
+          }
+          this.setEstimatedTransaction(data)
+          return true
+        } else {
+          const data = {
+            from: this.walletAddress,
+            to: '0xdb61656f80d44aa85724650fd3f776407b2cd576fabd4f731d326eb6d9989f9c',
+            gas: readableGas,
+            message:
+              'Insufficient balance to cover the transaction and gas fee.',
+            willFail: true,
+            tx: tx,
+            amount: amountToTransfer,
+          }
+          this.setEstimatedTransaction(data)
+          return true
+        }
+      } else {
+        console.error('Simulation did not return effects:', simulationResult)
+      }
+    } catch (error) {
+      console.error('Error simulating transaction:', error)
+    }
+  }
+
+  completePurchase = async (data: Transaction) => {
+    this.setCompleting(true)
+
+    const result = await this.suiClient.signAndExecuteTransaction({
+      transaction: data,
+      signer: this.wallet,
+      requestType: 'WaitForLocalExecution',
+      options: {
+        showEffects: true,
+      },
+    })
+
+    if (result.effects?.status?.status === 'success') {
+      // console.log('Transaction was successful!')
+      // console.log(`Transaction ID: ${result.digest}`)
+
+      this.setCompleting(false)
+      this.setTransactionFinalized(true)
+    } else {
+      console.error('Transaction failed:', result.effects?.status?.error)
+      this.setCompleting(false)
+    }
+  }
+
   getTokensInWallet = async () => {
     const res = await this.suiClient.getCoins({
       owner: this.walletAddress,
@@ -206,6 +315,14 @@ export class WalletStore {
     this.tokensInWallet = data
   }
 
+  setEstimatedTransaction = (data: any) => {
+    this.estimatedTransaction = data
+  }
+
+  setIsEstimated = (value: boolean) => {
+    this.isEstimated = value
+  }
+
   setResponseMessage = (type: string, text: string) => {
     this.responseMessage = {
       type,
@@ -215,5 +332,13 @@ export class WalletStore {
 
   setLoading = (value: boolean) => {
     this.loading = value
+  }
+
+  setCompleting = (value: boolean) => {
+    this.completing = value
+  }
+
+  setTransactionFinalized = (value: boolean) => {
+    this.transactionFinalized = value
   }
 }

@@ -28,7 +28,7 @@ import Swap from '@/components/WalletApp/Swap'
 import Buy from '@/components/WalletApp/Buy'
 import { MdExitToApp, MdKeyboardArrowDown } from 'react-icons/md'
 import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { observer } from 'mobx-react-lite'
 import { DialogHeader, DialogFooter, DialogClose } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -41,6 +41,8 @@ import {
 import { Label } from '@radix-ui/react-label'
 import { StoreContext } from '@/mobx store/RootStore'
 import { extractTokenName, formatSUIBalance } from '@/lib/helper'
+import { Table, TableRow, TableBody, TableCell } from '@/components/ui/table'
+import { Transaction } from '@mysten/sui/transactions'
 
 const userActions: UserAction[] = [
   {
@@ -67,16 +69,30 @@ const WalletApp = () => {
     walletAddress,
     tokensInWallet,
     responseMessage,
+    estimatedTransaction,
+    completing,
+    transactionFinalized,
     setResponseMessage,
   } = walletStore
   const [password, setPassword] = useState<string>('')
   const [confirmPassword, setConfirmPassword] = useState<string>('')
   const [activeTab, setActiveTab] = useState('home')
+  const [isCopied, setIsCopied] = useState<boolean>(false)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const [searchParams] = useSearchParams()
+
+  useEffect(() => {
+    const bool = searchParams.get('buydal') === 'true'
+    if (bool) {
+      setIsOpen(true)
+    }
+  }, [searchParams])
 
   const handleTabChange = (value: any) => {
     setActiveTab(value)
   }
-  const usd = 1000000
+  //const usd = 1000000
 
   const handleCreateWallet = async () => {
     if (password === '' || confirmPassword === '') {
@@ -91,13 +107,31 @@ const WalletApp = () => {
     await walletStore.createWallet(confirmPassword)
   }
 
-  // useEffect(() => {
-  //   if (walletAddress) walletStore.getTokensInWallet()
-  // }, [walletAddress])
+  useEffect(() => {
+    if (walletAddress) walletStore.getTokensInWallet()
+  }, [walletAddress])
 
   useEffect(() => {
     walletStore.unlockWallet()
   }, [])
+
+  const handleCopyAddress = () => {
+    navigator.clipboard
+      .writeText(walletAddress)
+      .then(() => {
+        setIsCopied(true)
+        setTimeout(() => {
+          setIsCopied(false)
+        }, 500)
+      })
+      .catch((err) => {
+        console.error('Failed to copy: ', err)
+      })
+  }
+
+  const handleCompletePurchase = async (data: Transaction) => {
+    await walletStore.completePurchase(data)
+  }
 
   return (
     <div className="bg-[#F3F0E5] px-6 text-[#4A403A] min-h-[100vh] relative pb-16">
@@ -132,16 +166,25 @@ const WalletApp = () => {
                   onClick={() => walletStore.requestFaucet()}
                   className="mb-1 text-5xl font-semibold"
                 >
-                  {formatSUIBalance(tokensInWallet[0]?.balance) || 0}
+                  {formatSUIBalance(tokensInWallet[0]?.balance).toFixed(4) || 0}
                   <span className="text-3xl"> SUI</span>
                 </h1>
-                <p className="mb-2 text-xl text-[#7A6E58]">${usd}</p>
-                <div className="flex justify-center items-center gap-1 text-[#7A6E58] text-sm">
+                {/* <p className="mb-2 text-xl text-[#7A6E58]">${usd}</p> */}
+                <div
+                  onClick={handleCopyAddress}
+                  className="flex justify-center items-center gap-1 text-[#7A6E58] text-sm"
+                >
                   <p>
                     {walletAddress.substring(0, 8)}...
                     {walletAddress.substring(60)}
                   </p>
-                  <IoCopyOutline size={14} />
+                  {isCopied ? (
+                    <span className="text-[9px] bg-[#4A403A] text-primary-foreground px-2 rounded-xl">
+                      Copied!
+                    </span>
+                  ) : (
+                    <IoCopyOutline size={14} />
+                  )}
                 </div>
               </div>
               <div className="flex items-center justify-center w-[85%] gap-3 mt-6 action">
@@ -177,6 +220,97 @@ const WalletApp = () => {
                 ))}
               </div>
 
+              <div>
+                <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                  <SheetContent side="bottom" aria-describedby={`description-`}>
+                    <SheetHeader>
+                      <SheetTitle>
+                        {transactionFinalized
+                          ? 'Complete'
+                          : 'Review Transaction'}
+                      </SheetTitle>
+                    </SheetHeader>
+
+                    {transactionFinalized ? (
+                      <div>
+                        <h1>Txn Complete</h1>
+                      </div>
+                    ) : (
+                      <Table className="mt-5">
+                        <TableBody>
+                          <TableRow className="border-transparent hover:bg-transparent">
+                            <TableCell className="font-medium">From:</TableCell>
+                            <TableCell className="text-right text-[#5C4F3A]">
+                              {estimatedTransaction?.from.substring(0, 8)}...
+                              {estimatedTransaction?.from.substring(60)}
+                            </TableCell>
+                          </TableRow>
+
+                          <TableRow className="border-transparent hover:bg-transparent">
+                            <TableCell className="font-medium">To:</TableCell>
+                            <TableCell className="text-right text-[#5C4F3A]">
+                              {estimatedTransaction?.to.substring(0, 8)}...
+                              {estimatedTransaction?.to.substring(60)}
+                            </TableCell>
+                          </TableRow>
+
+                          <TableRow className="border-transparent hover:bg-transparent">
+                            <TableCell className="font-medium">Gas:</TableCell>
+                            <TableCell className="text-right text-[#5C4F3A]">
+                              {estimatedTransaction?.gas! / 1e9}
+                            </TableCell>
+                          </TableRow>
+
+                          <TableRow className="border-transparent hover:bg-transparent">
+                            <TableCell className="font-medium">
+                              Amount (plus gas):
+                            </TableCell>
+                            <TableCell className="text-right text-[#5C4F3A]">
+                              {(estimatedTransaction?.amount! +
+                                estimatedTransaction?.gas!) /
+                                1e9}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    )}
+
+                    {estimatedTransaction?.willFail ? (
+                      <p className="p-3 mt-2 text-center text-red-600 border border-red-500 rounded">
+                        {estimatedTransaction.message}
+                      </p>
+                    ) : null}
+
+                    {transactionFinalized ? null : (
+                      <div className="flex items-center justify-between gap-6 mt-6">
+                        <button
+                          className="w-full btn_secondary"
+                          onClick={() => {
+                            setIsOpen(false)
+                            navigate('/store')
+                          }}
+                        >
+                          Decline
+                        </button>
+                        <button
+                          disabled={estimatedTransaction?.willFail}
+                          className={
+                            estimatedTransaction?.willFail
+                              ? 'w-full btn_primary__diabled'
+                              : 'w-full btn_primary'
+                          }
+                          onClick={() =>
+                            handleCompletePurchase(estimatedTransaction?.tx!)
+                          }
+                        >
+                          {completing ? 'Confirming...' : 'Confirm'}
+                        </button>
+                      </div>
+                    )}
+                  </SheetContent>
+                </Sheet>
+              </div>
+
               {/*Available Tokens */}
               <div className="flex flex-col justify-center w-full gap-4 mt-10">
                 {tokensInWallet?.map((token, index) => (
@@ -197,12 +331,12 @@ const WalletApp = () => {
                           {extractTokenName(token.coinType)}
                         </h2>
                         <p className="text-sm">
-                          {formatSUIBalance(token.balance)}{' '}
+                          {formatSUIBalance(token.balance).toFixed(4)}{' '}
                           {extractTokenName(token.coinType)}
                         </p>
                       </div>
                     </div>
-                    <p className="text-base">$10000</p>
+                    {/* <p className="text-base">$10000</p> */}
                   </div>
                 ))}
               </div>

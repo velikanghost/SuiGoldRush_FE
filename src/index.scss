@@ -25,6 +25,16 @@ body {
   background-color: #2a1f1a;
 }
 
+.btn_primary__diabled {
+  background-color: grey;
+  color: #f3f0e5;
+  border: 1px solid grey;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
 .btn_secondary {
   background-color: transparent;
   color: #3d2c24;
