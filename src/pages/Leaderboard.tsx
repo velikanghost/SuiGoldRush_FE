@@ -21,7 +21,7 @@ const Leaderboard = () => {
         </h1>
       </div>
 
-      <div className="bg-[#F5EAD1] w-full flex flex-col p-2 rounded items-start mt-4 min-h-[75%]">
+      <div className="bg-[#F5EAD1] w-full flex flex-col p-2 rounded items-start mt-4 h-[22rem] overflow-y-auto">
         <Table>
           <TableHeader>
             <TableRow className="border-[#3d2c24]">

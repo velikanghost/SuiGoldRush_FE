@@ -1,6 +1,7 @@
-import { Leaderboard, Metrics, Tractor, User } from '@/lib/types/all'
+import { Invites, Leaderboard, Metrics, Tractor, User } from '@/lib/types/all'
 import axios from 'axios'
 import { makeAutoObservable, runInAction } from 'mobx'
+import telegramService from '../lib/utils'
 
 export class ConnectStore {
   API_KEY = import.meta.env.VITE_APP_API_KEY
@@ -13,6 +14,7 @@ export class ConnectStore {
     upgrade_level: 0,
     energy: 0,
     max_energy: 0,
+    taps_total: 0,
   }
 
   user: User = {
@@ -30,6 +32,7 @@ export class ConnectStore {
       upgrade_level: 0,
       energy: 0,
       max_energy: 0,
+      taps_total: 0,
     },
     tractor: {
       id: 0,
@@ -48,6 +51,7 @@ export class ConnectStore {
     upgrade_level: 0,
     energy: 0,
     max_energy: 0,
+    taps_total: 0,
   }
   tractor: Tractor = {
     id: 0,
@@ -61,6 +65,11 @@ export class ConnectStore {
 
   tractors: Tractor[] = []
   leaderboard: Leaderboard[] = []
+  invites: Invites = {
+    total_referral_count: 0,
+    referral_link: '',
+    recent_referrals: [],
+  }
 
   constructor() {
     makeAutoObservable(this)
@@ -88,7 +97,7 @@ export class ConnectStore {
       )
 
       // console.log('local: ', toJS(this.localMetrics))
-      // console.log('api: ', res.data?.stats)
+      console.log('api: ', res.data)
 
       if (res) {
         this.setUser(res.data)
@@ -142,7 +151,29 @@ export class ConnectStore {
 
       this.setTractors(res.data)
 
-      //console.log(res.data)
+      console.log('tracts', res.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  getInvites = async () => {
+    const id = telegramService.initDataUnsafe?.user?.id
+    try {
+      const res = await axios.get(
+        `${this.BASE_URL}/api/user/invites?telegram_id=${id}`,
+        {
+          headers: {
+            Accept: 'application/json',
+            'x-api-key': this.API_KEY,
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+
+      this.setInvites(res.data)
+
+      console.log(res.data)
     } catch (error) {
       console.log(error)
     }
@@ -166,6 +197,10 @@ export class ConnectStore {
 
   setTractors = (data: Tractor[]) => {
     this.tractors = data
+  }
+
+  setInvites = (data: Invites) => {
+    this.invites = data
   }
 
   setRushing = (value: boolean) => {

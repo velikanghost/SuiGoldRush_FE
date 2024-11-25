@@ -91,7 +91,7 @@ const Mine = () => {
             tractor.image_url ||
             'https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731423602/tractor_dqo8q7.png'
           }
-          className="w-full transition-transform duration-300"
+          className="w-full transition-transform duration-300 transform-[0.2s] active:scale-[1.05]"
           alt={tractor.name}
         />
 

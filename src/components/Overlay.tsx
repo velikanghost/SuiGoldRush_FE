@@ -1,5 +1,5 @@
 const Overlay = () => {
-  return <div className="absolute bg-black/30 w-full h-[100dvh] z-0"></div>
+  return <div className="absolute z-0 w-full h-full bg-black/20"></div>
 }
 
 export default Overlay
