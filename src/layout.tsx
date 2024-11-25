@@ -16,6 +16,7 @@ const Layout = () => {
     getTelegramUserData,
     getLeaderboard,
     getTractors,
+    getInvites,
   } = connectStore
   const { syncMetricsToDb } = countStore
   const location = useLocation()
@@ -28,6 +29,7 @@ const Layout = () => {
     getLeaderboard()
     getTractors()
     walletStore.unlockWallet()
+    getInvites()
 
     setTimeout(() => {
       setRushing(false)

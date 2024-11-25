@@ -4,18 +4,15 @@ import {
   Sheet,
   SheetTrigger,
   SheetContent,
-  SheetClose,
   SheetTitle,
   SheetDescription,
   SheetHeader,
-  SheetFooter,
 } from '@/components/ui/sheet'
 import { HiOutlineQrcode } from 'react-icons/hi'
 import { FiSend } from 'react-icons/fi'
 import {
   PiBrowserLight,
   PiCurrencyDollarSimpleBold,
-  PiSwap,
   PiBrowserFill,
 } from 'react-icons/pi'
 import { IoCloseOutline, IoCopyOutline } from 'react-icons/io5'
@@ -24,7 +21,6 @@ import { RiHome8Line, RiHome8Fill } from 'react-icons/ri'
 import { UserAction } from '@/lib/types/walletapp'
 import Receive from '@/components/WalletApp/Receive'
 import Send from '@/components/WalletApp/Send'
-import Swap from '@/components/WalletApp/Swap'
 import Buy from '@/components/WalletApp/Buy'
 import { MdExitToApp, MdKeyboardArrowDown } from 'react-icons/md'
 import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar'
@@ -42,20 +38,25 @@ import { Label } from '@radix-ui/react-label'
 import { StoreContext } from '@/mobx store/RootStore'
 import { extractTokenName, formatSUIBalance } from '@/lib/helper'
 import { Table, TableRow, TableBody, TableCell } from '@/components/ui/table'
-import { Transaction } from '@mysten/sui/transactions'
+import { EstimatedTransaction } from '@/lib/types/all'
+import { BsCheck2Circle } from 'react-icons/bs'
+import Browse from '@/components/WalletApp/Browse'
 
 const userActions: UserAction[] = [
   {
+    index: 1,
     icon: <HiOutlineQrcode size={26} />,
     text: 'Receive',
     content: <Receive />,
   },
   {
+    index: 2,
     icon: <FiSend size={26} />,
     text: 'Send',
     content: <Send />,
   },
   {
+    index: 3,
     icon: <PiCurrencyDollarSimpleBold size={26} />,
     text: 'Buy',
     content: <Buy />,
@@ -72,6 +73,8 @@ const WalletApp = () => {
     estimatedTransaction,
     completing,
     transactionFinalized,
+    walletActionSheetOpen,
+    setWalletActionSheetOpen,
     setResponseMessage,
   } = walletStore
   const [password, setPassword] = useState<string>('')
@@ -92,7 +95,6 @@ const WalletApp = () => {
   const handleTabChange = (value: any) => {
     setActiveTab(value)
   }
-  //const usd = 1000000
 
   const handleCreateWallet = async () => {
     if (password === '' || confirmPassword === '') {
@@ -129,7 +131,7 @@ const WalletApp = () => {
       })
   }
 
-  const handleCompletePurchase = async (data: Transaction) => {
+  const handleCompletePurchase = async (data: EstimatedTransaction) => {
     await walletStore.completePurchase(data)
   }
 
@@ -162,11 +164,12 @@ const WalletApp = () => {
               className="grid pt-4 pb-8 place-items-center"
             >
               <div className="text-center balance">
-                <h1
-                  onClick={() => walletStore.requestFaucet()}
-                  className="mb-1 text-5xl font-semibold"
-                >
-                  {formatSUIBalance(tokensInWallet[0]?.balance).toFixed(4) || 0}
+                <h1 className="mb-1 text-5xl font-semibold">
+                  {tokensInWallet.length > 0
+                    ? formatSUIBalance(tokensInWallet[0].totalBalance).toFixed(
+                        4,
+                      )
+                    : 0}
                   <span className="text-3xl"> SUI</span>
                 </h1>
                 {/* <p className="mb-2 text-xl text-[#7A6E58]">${usd}</p> */}
@@ -189,7 +192,13 @@ const WalletApp = () => {
               </div>
               <div className="flex items-center justify-center w-[85%] gap-3 mt-6 action">
                 {userActions.map((action) => (
-                  <Sheet key={action.text}>
+                  <Sheet
+                    open={walletActionSheetOpen === action.index} // Control visibility
+                    onOpenChange={(isOpen) =>
+                      setWalletActionSheetOpen(isOpen ? action.index : null)
+                    }
+                    key={action.text}
+                  >
                     <SheetTrigger
                       asChild
                       className="bg-[#DBA24D] text-[#4A403A] shadow-lg p-3 text-sm flex flex-1 flex-col justify-center items-center gap-1 rounded"
@@ -200,21 +209,18 @@ const WalletApp = () => {
                       </div>
                     </SheetTrigger>
                     <SheetContent
+                      className="h-full bg-wallet"
                       side="bottom"
                       aria-describedby={`description-${action.text}`}
+                      tabIndex={action.index}
                     >
                       <SheetHeader>
-                        <SheetTitle>{action.text}</SheetTitle>
+                        <SheetTitle>{action.text} SUI</SheetTitle>
                         <SheetDescription className="invisible">
-                          {action.text}
+                          {action.text} SUI
                         </SheetDescription>
                       </SheetHeader>
                       {action.content}
-                      <SheetFooter>
-                        <SheetClose asChild>
-                          <button>CLOSE</button>
-                        </SheetClose>
-                      </SheetFooter>
                     </SheetContent>
                   </Sheet>
                 ))}
@@ -226,14 +232,32 @@ const WalletApp = () => {
                     <SheetHeader>
                       <SheetTitle>
                         {transactionFinalized
-                          ? 'Complete'
+                          ? 'Payment Successful'
                           : 'Review Transaction'}
                       </SheetTitle>
                     </SheetHeader>
 
                     {transactionFinalized ? (
-                      <div>
-                        <h1>Txn Complete</h1>
+                      <div className="flex flex-col items-center justify-center mt-6">
+                        <BsCheck2Circle size={70} />
+                        <p className="mt-3 text-xl">Tractor Upgraded</p>
+                        <div className="flex w-full gap-3 mt-6">
+                          <button
+                            className="w-full btn_primary"
+                            onClick={() => navigate('/mine')}
+                          >
+                            Start Mining
+                          </button>
+                          <button
+                            className="w-full btn_secondary"
+                            onClick={() => {
+                              walletStore.getTokensInWallet()
+                              setIsOpen(false)
+                            }}
+                          >
+                            Close
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <Table className="mt-5">
@@ -300,7 +324,7 @@ const WalletApp = () => {
                               : 'w-full btn_primary'
                           }
                           onClick={() =>
-                            handleCompletePurchase(estimatedTransaction?.tx!)
+                            handleCompletePurchase(estimatedTransaction!)
                           }
                         >
                           {completing ? 'Confirming...' : 'Confirm'}
@@ -331,7 +355,7 @@ const WalletApp = () => {
                           {extractTokenName(token.coinType)}
                         </h2>
                         <p className="text-sm">
-                          {formatSUIBalance(token.balance).toFixed(4)}{' '}
+                          {formatSUIBalance(token.totalBalance).toFixed(4)}{' '}
                           {extractTokenName(token.coinType)}
                         </p>
                       </div>
@@ -341,11 +365,15 @@ const WalletApp = () => {
                 ))}
               </div>
             </TabsContent>
-            <TabsContent value="swap">
+            {/* <TabsContent value="swap">
               <Swap />
+            </TabsContent> */}
+            <TabsContent value="browse">
+              <Browse />
             </TabsContent>
-            <TabsContent value="browse">Browse</TabsContent>
-            <TabsContent value="activity">Activity</TabsContent>
+            <TabsContent value="activity">
+              Your transaction history will appear here when available
+            </TabsContent>
 
             <TabsList className="fixed bottom-0 left-0 flex justify-between w-full border-t border-[#5C4F3A] bg-[#3D2C24]">
               <TabsTrigger
@@ -363,7 +391,7 @@ const WalletApp = () => {
                   <RiHome8Line size={28} className="text-[#F3F0E5]" />
                 )}
               </TabsTrigger>
-              <TabsTrigger
+              {/* <TabsTrigger
                 onClick={() => handleTabChange('swap')}
                 value="swap"
                 className={
@@ -377,7 +405,7 @@ const WalletApp = () => {
                 ) : (
                   <PiSwap size={28} className="text-[#F3F0E5]" />
                 )}
-              </TabsTrigger>
+              </TabsTrigger> */}
               <TabsTrigger
                 onClick={() => handleTabChange('browse')}
                 value="browse"
@@ -417,7 +445,7 @@ const WalletApp = () => {
             <MdExitToApp onClick={() => navigate('/store')} size={32} />
           </nav>
 
-          <Dialog>
+          {/* <Dialog>
             <DialogTrigger asChild>
               <button className="shadow-lg btn_primary">Import Wallet</button>
             </DialogTrigger>
@@ -463,7 +491,7 @@ const WalletApp = () => {
                 <button className="btn_primary">Submit</button>
               </DialogFooter>
             </DialogContent>
-          </Dialog>
+          </Dialog> */}
 
           <Dialog>
             <DialogTrigger asChild>

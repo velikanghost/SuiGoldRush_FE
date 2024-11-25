@@ -4,12 +4,23 @@ import * as bip39 from 'bip39'
 import { derivePath } from 'ed25519-hd-key'
 import CryptoJS from 'crypto-js'
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519'
-import { CoinStruct, getFullnodeUrl, SuiClient } from '@mysten/sui/client'
-import { requestSuiFromFaucetV0, getFaucetHost } from '@mysten/sui/faucet'
+import {
+  getFullnodeUrl,
+  PaginatedCoins,
+  SuiClient,
+  SuiTransactionBlockResponse,
+} from '@mysten/sui/client'
 import { Transaction } from '@mysten/sui/transactions'
-import { EstimatedTransaction, Tractor } from '@/lib/types/all'
+import {
+  EstimatedTransaction,
+  EstimatedTransfer,
+  Tractor,
+} from '@/lib/types/all'
+import { CountStore } from './CountStore'
+import { PaginatedCoinsResult } from '@/lib/types/walletapp'
 
 export class WalletStore {
+  countStore: CountStore
   PASS_HASH = import.meta.env.VITE_APP_PASS_HASH
   // use getFullnodeUrl to define Devnet RPC location
   rpcUrl = getFullnodeUrl('testnet')
@@ -20,7 +31,8 @@ export class WalletStore {
   wallet: any = null
   walletAddress: string = ''
   walletSeedPhrase: string = ''
-  tokensInWallet: CoinStruct[] = []
+  tokensInWallet: PaginatedCoinsResult[] = []
+  walletActionSheetOpen: number | null = 0
   responseMessage = {
     type: '',
     text: '',
@@ -29,10 +41,24 @@ export class WalletStore {
   encryptedPass: any = null
   isEstimated: boolean = false
   estimatedTransaction: EstimatedTransaction | undefined
+  estimatedTransfer: EstimatedTransfer = {
+    from: '',
+    to: '',
+    gas: 0,
+    message: '',
+    willFail: false,
+    tx: new Transaction(),
+    amount: 0,
+  }
+  transferResult: SuiTransactionBlockResponse = {
+    digest: '',
+  }
   completing: boolean = false
   transactionFinalized: boolean = false
+  transferFinalized: boolean = false
 
-  constructor() {
+  constructor(countStore: CountStore) {
+    this.countStore = countStore
     makeAutoObservable(this)
     const wallet = localStorage.getItem('wallet')
     const pass = localStorage.getItem('pass')
@@ -233,6 +259,7 @@ export class WalletStore {
             willFail: false,
             tx: tx,
             amount: amountToTransfer,
+            tractorLevel: tractor.upgrade_level,
           }
           this.setEstimatedTransaction(data)
           return true
@@ -246,6 +273,7 @@ export class WalletStore {
             willFail: true,
             tx: tx,
             amount: amountToTransfer,
+            tractorLevel: tractor.upgrade_level,
           }
           this.setEstimatedTransaction(data)
           return true
@@ -258,11 +286,11 @@ export class WalletStore {
     }
   }
 
-  completePurchase = async (data: Transaction) => {
+  completePurchase = async (data: EstimatedTransaction) => {
     this.setCompleting(true)
 
     const result = await this.suiClient.signAndExecuteTransaction({
-      transaction: data,
+      transaction: data.tx,
       signer: this.wallet,
       requestType: 'WaitForLocalExecution',
       options: {
@@ -273,6 +301,13 @@ export class WalletStore {
     if (result.effects?.status?.status === 'success') {
       // console.log('Transaction was successful!')
       // console.log(`Transaction ID: ${result.digest}`)
+      try {
+        await this.countStore.upgradeTractor(data.tractorLevel)
+
+        //console.log(res.data)
+      } catch (error) {
+        console.log(error)
+      }
 
       this.setCompleting(false)
       this.setTransactionFinalized(true)
@@ -282,21 +317,140 @@ export class WalletStore {
     }
   }
 
+  transferSUI = async (recipient: string, amount: number) => {
+    const tx = new Transaction()
+
+    //const amountToTransfer = amount * 1e9
+
+    const [coin] = tx.splitCoins(tx.gas, [amount])
+
+    tx.transferObjects([coin], recipient)
+
+    try {
+      const balance = await this.suiClient.getBalance({
+        owner: this.walletAddress,
+        coinType: '0x2::sui::SUI',
+      })
+
+      // Simulate the transaction block
+      const simulationResult = await this.suiClient.devInspectTransactionBlock({
+        sender: this.walletAddress,
+        transactionBlock: tx,
+      })
+
+      // Extract gas fees from simulation result
+      if (simulationResult.effects) {
+        const { gasUsed } = simulationResult.effects
+        const readableGas = this.convertGasUsedToReadable(gasUsed) * 1e9
+        const totalRequired = amount + readableGas
+
+        // Compare
+        if (Number(balance.totalBalance) >= totalRequired) {
+          const data = {
+            from: this.walletAddress,
+            to: recipient,
+            gas: readableGas,
+            message: 'User has enough SUI to proceed with the transaction.',
+            willFail: false,
+            tx: tx,
+            amount: amount,
+          }
+          this.setEstimatedTransfer(data)
+          return true
+        } else {
+          const data = {
+            from: this.walletAddress,
+            to: recipient,
+            gas: readableGas,
+            message:
+              'Insufficient balance to cover the transaction and gas fee.',
+            willFail: true,
+            tx: tx,
+            amount: amount,
+          }
+          this.setEstimatedTransfer(data)
+          return true
+        }
+      } else {
+        console.error('Simulation did not return effects:', simulationResult)
+      }
+    } catch (error) {
+      console.error('Error simulating transaction:', error)
+    }
+  }
+
+  completeTransfer = async (data: EstimatedTransfer) => {
+    const result = await this.suiClient.signAndExecuteTransaction({
+      transaction: data.tx,
+      signer: this.wallet,
+      requestType: 'WaitForLocalExecution',
+      options: {
+        showEffects: true,
+      },
+    })
+
+    if (result.effects?.status?.status === 'success') {
+      // console.log('Transaction was successful!')
+      // console.log(`Transaction ID: ${result.digest}`)
+      await this.getTokensInWallet()
+      this.setTransferResult(result)
+      this.setTransferFinalized(true)
+      this.setEstimatedTransfer(undefined!)
+      //this.setWalletActionSheetOpen(null)
+    } else {
+      console.error('Transaction failed:', result.effects?.status?.error)
+    }
+  }
+
+  mergeCoinsByType = (coins: PaginatedCoins) => {
+    // Use a map to group by `coinType`
+    const groupedCoins = coins.data.reduce((acc: any, coin) => {
+      const { coinType, balance, ...details } = coin
+
+      if (!acc[coinType]) {
+        // Create a new entry for this `coinType`
+        acc[coinType] = {
+          coinType,
+          totalBalance: BigInt(0), // Use BigInt for large balances
+          details: [],
+        }
+      }
+
+      // Add to the total balance and include the full object in `details`
+      acc[coinType].totalBalance += BigInt(balance)
+      acc[coinType].details.push({ balance, ...details })
+
+      return acc
+    }, {})
+
+    // Convert the grouped object back into an array
+    return Object.values(groupedCoins).map((item: any) => ({
+      ...item,
+      totalBalance: item.totalBalance.toString(), // Convert BigInt back to string
+    }))
+  }
+
   getTokensInWallet = async () => {
     const res = await this.suiClient.getCoins({
       owner: this.walletAddress,
+      coinType: '0x2::sui::SUI',
     })
 
-    const balance = res.data
-    console.log(balance)
-    this.setTokensInWallet(balance)
+    // const totalBalance = res.data.reduce(
+    //   (acc, coin) => acc + BigInt(coin.balance),
+    //   BigInt(0),
+    // )
+
+    const result = this.mergeCoinsByType(res)
+    //const balance = res.data
+    //console.log(totalBalance)
+    //console.log(result)
+    this.setTokensInWallet(result)
   }
 
-  requestFaucet = async () => {
-    await requestSuiFromFaucetV0({
-      host: getFaucetHost('testnet'),
-      recipient: this.walletAddress,
-    })
+  setWalletActionSheetOpen = (value: number | null) => {
+    this.setTransferFinalized(false)
+    this.walletActionSheetOpen = value
   }
 
   setWallet = (data: any) => {
@@ -311,12 +465,20 @@ export class WalletStore {
     this.walletSeedPhrase = value
   }
 
-  setTokensInWallet = (data: CoinStruct[]) => {
+  setTokensInWallet = (data: PaginatedCoinsResult[]) => {
     this.tokensInWallet = data
   }
 
   setEstimatedTransaction = (data: any) => {
     this.estimatedTransaction = data
+  }
+
+  setEstimatedTransfer = (data: EstimatedTransfer) => {
+    this.estimatedTransfer = data
+  }
+
+  setTransferResult = (data: SuiTransactionBlockResponse) => {
+    this.transferResult = data
   }
 
   setIsEstimated = (value: boolean) => {
@@ -340,5 +502,9 @@ export class WalletStore {
 
   setTransactionFinalized = (value: boolean) => {
     this.transactionFinalized = value
+  }
+
+  setTransferFinalized = (value: boolean) => {
+    this.transferFinalized = value
   }
 }

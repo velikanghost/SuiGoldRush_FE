@@ -17,7 +17,7 @@ export class CountStore {
       this.syncMetricsToDb()
     }, 900000)
 
-    //this.startDailyResetTimer() // Start daily reset timer
+    //this.startDailyResetTimer()
   }
 
   tapTractor = () => {
@@ -25,7 +25,8 @@ export class CountStore {
       this.connectStore.userMetrics.gold_coins +=
         this.connectStore.tractor.multiplier
       this.connectStore.userMetrics.energy -= 1
-      this.saveMetrics() // Save metrics to localStorage after update
+      this.connectStore.userMetrics.taps_total += 1
+      this.saveMetrics()
     }
   }
 
@@ -33,7 +34,7 @@ export class CountStore {
     const userId = telegramService.initDataUnsafe?.user?.id
     const data = {
       user_id: userId,
-      tap_count: this.connectStore.userMetrics.gold_coins,
+      tap_count: this.connectStore.userMetrics.taps_total,
       energy: this.connectStore.userMetrics.energy,
     }
 
@@ -46,17 +47,40 @@ export class CountStore {
         },
       })
 
+      if (res.data === 'success') {
+        this.connectStore.getTelegramUserData()
+      }
+
       console.log(res.data)
     } catch (error) {
       console.log(error)
     }
   }
 
-  upgradeTractor = () => {
-    this.connectStore.tractor.upgrade_level += 1
-    this.connectStore.tractor.multiplier += 1
-    this.connectStore.userMetrics.max_energy += 1000
-    this.saveMetrics() // Save metrics to localStorage after update
+  upgradeTractor = async (level: number) => {
+    const userId = telegramService.initDataUnsafe?.user?.id
+    // this.connectStore.tractor.upgrade_level += 1
+    // this.connectStore.tractor.multiplier += 1
+    // this.connectStore.userMetrics.max_energy += 1000
+
+    try {
+      const res = await axios.post(
+        `${this.BASE_URL}/api/user/upgrade_tractor?user_id=${userId}&upgrade_level=${level}`,
+        {},
+        {
+          headers: {
+            Accept: 'application/json',
+            'x-api-key': this.API_KEY,
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+
+      console.log('up: ', res.data)
+      //this.saveMetrics() // Save metrics to localStorage after update
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   resetEnergy = () => {

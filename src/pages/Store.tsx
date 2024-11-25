@@ -4,11 +4,12 @@ import { IoMdArrowRoundForward } from 'react-icons/io'
 import { StoreContext } from '@/mobx store/RootStore'
 import { useContext } from 'react'
 import { Tractor } from '@/lib/types/all'
+import { GiPadlock } from 'react-icons/gi'
 
 const Store = () => {
   const navigate = useNavigate()
   const { connectStore, walletStore } = useContext(StoreContext)
-  const { tractors } = connectStore
+  const { tractors, userMetrics } = connectStore
   const hasWallet = localStorage.getItem('wallet') !== null
 
   const handleConnectWallet = () => {
@@ -53,25 +54,43 @@ const Store = () => {
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-4">
-              {tractors.slice(1).map((tractor) => (
+              {tractors.slice(0, 4).map((tractor) => (
                 <div
                   key={tractor.id}
-                  className="bg-[#F5EAD1] flex flex-col p-2 rounded items-start justify-between"
+                  className="bg-[#F5EAD1] flex flex-col p-2 rounded items-center justify-between"
                 >
                   <img
                     src={tractor.image_url}
-                    className="transition-transform duration-200"
+                    className="pb-3 transition-transform duration-200"
                     alt="tractor"
                   />
-                  <p className="py-2 text-sm font-semibold">
+                  <h3 className="font-bold text-center border-t border-[#3d2c24] w-full pt-3">
+                    {tractor.name}
+                  </h3>
+                  <p className="flex items-center justify-between py-1 text-sm font-semibold">
                     {tractor.max_energy} Energy
+                    {/* <AiFillThunderbolt color="#3d2c24" /> */}
                   </p>
-                  <button
-                    onClick={() => handleBuyTractor(tractor)}
-                    className="w-full buy_btn"
-                  >
-                    BUY for {tractor.price} SUI
-                  </button>
+                  <p className="py-1 text-sm font-semibold">
+                    {tractor.multiplier}x Multiplier
+                  </p>
+                  {userMetrics.upgrade_level === tractor.upgrade_level ? (
+                    <button className="flex items-center justify-center w-full buy_btn__disabled bg-[#ffd700]">
+                      Active
+                    </button>
+                  ) : userMetrics.upgrade_level + 1 ===
+                    tractor.upgrade_level ? (
+                    <button
+                      onClick={() => handleBuyTractor(tractor)}
+                      className="w-full buy_btn"
+                    >
+                      BUY for {tractor.price} SUI
+                    </button>
+                  ) : (
+                    <button className="flex items-center justify-center w-full buy_btn__disabled">
+                      <GiPadlock size={20} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
