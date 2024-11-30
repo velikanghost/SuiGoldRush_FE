@@ -82,11 +82,11 @@ const Layout = () => {
   return (
     <div
       className={home ? 'home_section' : mine ? 'mine_section' : 'home_section'}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-      }}
+      // style={{
+      //   display: 'flex',
+      //   flexDirection: 'column',
+      //   justifyContent: 'space-between',
+      // }}
     >
       <Header />
       <Overlay />

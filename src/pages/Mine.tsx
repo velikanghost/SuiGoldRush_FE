@@ -82,8 +82,8 @@ const Mine = () => {
         onClick={handleTractorClick}
         className={
           userMetrics.energy > 0
-            ? '-top-[11%] h-[320px] w-[320px] p-10 rounded-[50%] z-20  flex justify-center items-center border-yellow-300 transition-transform duration-1000 ease-in-out active:scale-[1.05] active:shadow-[0_0_25px_15px_rgba(255,223,0,0.6)] relative'
-            : '-top-[11%] h-[320px] w-[320px] p-10 rounded-[50%] z-20  flex justify-center items-center transition-transform duration-1000 ease-in-out active:shadow-[0_0_25px_15px_rgba(255,0,0,0.6)] relative'
+            ? '-top-[34%] h-[320px] w-[320px] p-10 rounded-[50%] z-20  flex justify-center items-center border-yellow-300 transition-transform duration-1000 ease-in-out active:scale-[1.05] active:shadow-[0_0_25px_15px_rgba(255,223,0,0.6)] relative'
+            : '-top-[34%] h-[320px] w-[320px] p-10 rounded-[50%] z-20  flex justify-center items-center transition-transform duration-1000 ease-in-out active:shadow-[0_0_25px_15px_rgba(255,0,0,0.6)] relative'
         }
       >
         <img

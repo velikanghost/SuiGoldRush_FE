@@ -3,13 +3,14 @@ import { PiFarmFill } from 'react-icons/pi'
 import { GiAxeSwing } from 'react-icons/gi'
 import { FaTasks } from 'react-icons/fa'
 import { MdLeaderboard, MdPostAdd, MdStoreMallDirectory } from 'react-icons/md'
+import { observer } from 'mobx-react-lite'
 
 const Footer = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
   return (
-    <footer className="relative z-20 w-full gap-4 p-4">
+    <footer className="fixed bottom-0 z-20 w-full gap-4 p-4">
       {location.pathname === '/' && (
         <div className="flex justify-between mb-6 top">
           <div
@@ -68,4 +69,4 @@ const Footer = () => {
   )
 }
 
-export default Footer
+export default observer(Footer)

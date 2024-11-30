@@ -20,3 +20,9 @@ export type PaginatedCoinsResult = {
   totalBalance: string
   details: CoinDetails[]
 }
+
+export type ManageWallet = {
+  index: number
+  text: string
+  content: ReactElement
+}
