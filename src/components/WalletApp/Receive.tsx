@@ -34,10 +34,8 @@ const Receive = () => {
       />
       <h2 className="mt-8 mb-4 font-bold">Your SUI Address</h2>
       <div className="flex flex-col items-center justify-center border-[#4A403A] border-2 rounded-xl py-3">
-        <p className="border-b border-[#4A403A] px-3 pb-3">
-          {`${walletAddress?.substring(0, 14)}.......${walletAddress?.substring(
-            52,
-          )}`}
+        <p className="border-b border-[#4A403A] px-3 pb-3 overflow-hidden break-all">
+          {walletAddress}
         </p>
         <span
           className="flex items-center gap-2 pt-3 cursor-pointer"

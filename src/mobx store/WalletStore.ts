@@ -31,8 +31,10 @@ export class WalletStore {
   wallet: any = null
   walletAddress: string = ''
   walletSeedPhrase: string = ''
+  walletPrivateKey: string = ''
   tokensInWallet: PaginatedCoinsResult[] = []
   walletActionSheetOpen: number | null = 0
+  manageWalletSheetOpen: number | null = 0
   responseMessage = {
     type: '',
     text: '',
@@ -40,6 +42,8 @@ export class WalletStore {
   encryptedKey: any = null
   encryptedPass: any = null
   isEstimated: boolean = false
+  decryptState: boolean = false
+  isNewWallet: boolean = false
   estimatedTransaction: EstimatedTransaction | undefined
   estimatedTransfer: EstimatedTransfer = {
     from: '',
@@ -112,16 +116,10 @@ export class WalletStore {
     const { key } = derivePath(path, seed.toString('hex'))
     const keypair = Ed25519Keypair.fromSecretKey(Uint8Array.from(key))
 
-    // Logging mnemonic, seed, and public address
-    // console.log('Mnemonic (readable):', mnemonic)
-    // console.log('Seed (readable):', seed.toString('hex'))
-    // console.log(
-    //   'Public Address (create):',
-    //   keypair.getPublicKey().toSuiAddress(),
-    // )
     this.setWalletSeedPhrase(mnemonic)
     this.setWallet(keypair)
     this.setWalletAddress(keypair.getPublicKey().toSuiAddress())
+    this.setIsNewWallet(true)
 
     const encryptedKey = CryptoJS.AES.encrypt(mnemonic, pwd).toString()
     const encryptedPass = CryptoJS.AES.encrypt(
@@ -134,41 +132,34 @@ export class WalletStore {
     localStorage.setItem('wallet', encryptedKey) // Save encrypted seed
   }
 
-  // unlockWallet = async () => {
-  //   //const encryptedKey = localStorage.getItem('wallet')
+  manualUnlockWallet = async (password: string) => {
+    const encryptedKey = localStorage.getItem('wallet')
+    const encryptedPass = localStorage.getItem('pass')
 
-  //   const encryptedKey = localStorage.getItem('wallet')
-  //   const encryptedPass = localStorage.getItem('pass')
+    try {
+      const pwd = CryptoJS.AES.decrypt(
+        encryptedPass!,
+        import.meta.env.VITE_APP_PASS_HASH,
+      ).toString(CryptoJS.enc.Utf8)
 
-  //   console.log('ekey', encryptedKey)
-  //   if (!encryptedKey) {
-  //     this.setWallet(null)
-  //     return
-  //   }
-
-  //   try {
-  //     console.log('epass', encryptedPass)
-  //     const pwd = CryptoJS.AES.decrypt(
-  //       encryptedPass!,
-  //       import.meta.env.VITE_APP_PASS_HASH,
-  //     ).toString(CryptoJS.enc.Utf8)
-
-  //     console.log('pwd', pwd)
-
-  //     const decryptedSeed = CryptoJS.AES.decrypt(encryptedKey!, pwd).toString(
-  //       CryptoJS.enc.Utf8,
-  //     )
-
-  //     const { key } = derivePath("m/44'/784'/0'/0'/0'", decryptedSeed)
-  //     const keypair = Ed25519Keypair.fromSecretKey(Uint8Array.from(key))
-
-  //     console.log('kp', keypair.getPublicKey().toSuiAddress())
-  //     this.setWallet(keypair)
-  //     this.setWalletAddress(keypair.getPublicKey().toSuiAddress())
-  //   } catch (error) {
-  //     console.log(error)
-  //   }
-  // }
+      if (pwd === password) {
+        const decryptedSeed = CryptoJS.AES.decrypt(encryptedKey!, pwd).toString(
+          CryptoJS.enc.Utf8,
+        )
+        this.setWalletSeedPhrase(decryptedSeed)
+        const keypair = Ed25519Keypair.deriveKeypair(decryptedSeed)
+        this.setWalletPrivateKey(keypair.getSecretKey())
+        this.setDecryptState(true)
+        //return
+      } else {
+        this.setResponseMessage('error', 'Password is incorrect!')
+        this.setDecryptState(false)
+        //return
+      }
+    } catch (error) {
+      console.error('Error during wallet unlocking:', error)
+    }
+  }
 
   unlockWallet = async () => {
     const encryptedKey = localStorage.getItem('wallet')
@@ -188,15 +179,7 @@ export class WalletStore {
         CryptoJS.enc.Utf8,
       )
 
-      // const { key } = derivePath("m/44'/784'/0'/0'/0'", decryptedSeed)
       const keypair = Ed25519Keypair.deriveKeypair(decryptedSeed)
-
-      // Logging decrypted seed and public address
-      // console.log('Decrypted Seed (readable):', decryptedSeed)
-      // console.log(
-      //   'Public Address (unlock):',
-      //   keypair.getPublicKey().toSuiAddress(),
-      // )
 
       this.setWallet(keypair)
       this.setWalletAddress(keypair.getPublicKey().toSuiAddress())
@@ -299,8 +282,6 @@ export class WalletStore {
     })
 
     if (result.effects?.status?.status === 'success') {
-      // console.log('Transaction was successful!')
-      // console.log(`Transaction ID: ${result.digest}`)
       try {
         await this.countStore.upgradeTractor(data.tractorLevel)
 
@@ -319,8 +300,6 @@ export class WalletStore {
 
   transferSUI = async (recipient: string, amount: number) => {
     const tx = new Transaction()
-
-    //const amountToTransfer = amount * 1e9
 
     const [coin] = tx.splitCoins(tx.gas, [amount])
 
@@ -390,13 +369,10 @@ export class WalletStore {
     })
 
     if (result.effects?.status?.status === 'success') {
-      // console.log('Transaction was successful!')
-      // console.log(`Transaction ID: ${result.digest}`)
       await this.getTokensInWallet()
       this.setTransferResult(result)
       this.setTransferFinalized(true)
       this.setEstimatedTransfer(undefined!)
-      //this.setWalletActionSheetOpen(null)
     } else {
       console.error('Transaction failed:', result.effects?.status?.error)
     }
@@ -436,21 +412,19 @@ export class WalletStore {
       coinType: '0x2::sui::SUI',
     })
 
-    // const totalBalance = res.data.reduce(
-    //   (acc, coin) => acc + BigInt(coin.balance),
-    //   BigInt(0),
-    // )
-
     const result = this.mergeCoinsByType(res)
-    //const balance = res.data
-    //console.log(totalBalance)
-    //console.log(result)
     this.setTokensInWallet(result)
   }
 
   setWalletActionSheetOpen = (value: number | null) => {
     this.setTransferFinalized(false)
     this.walletActionSheetOpen = value
+  }
+
+  setManageWalletSheetOpen = (value: number | null) => {
+    this.setResponseMessage('', '')
+    this.setDecryptState(false)
+    this.manageWalletSheetOpen = value
   }
 
   setWallet = (data: any) => {
@@ -463,6 +437,10 @@ export class WalletStore {
 
   setWalletSeedPhrase = (value: string) => {
     this.walletSeedPhrase = value
+  }
+
+  setWalletPrivateKey = (value: string) => {
+    this.walletPrivateKey = value
   }
 
   setTokensInWallet = (data: PaginatedCoinsResult[]) => {
@@ -485,11 +463,19 @@ export class WalletStore {
     this.isEstimated = value
   }
 
+  setIsNewWallet = (value: boolean) => {
+    this.isNewWallet = value
+  }
+
   setResponseMessage = (type: string, text: string) => {
     this.responseMessage = {
       type,
       text,
     }
+  }
+
+  setDecryptState = (value: boolean) => {
+    this.decryptState = value
   }
 
   setLoading = (value: boolean) => {

@@ -96,9 +96,6 @@ export class ConnectStore {
         },
       )
 
-      // console.log('local: ', toJS(this.localMetrics))
-      console.log('api: ', res.data)
-
       if (res) {
         this.setUser(res.data)
 
@@ -151,7 +148,7 @@ export class ConnectStore {
 
       this.setTractors(res.data)
 
-      console.log('tracts', res.data)
+      //console.log('tracts', res.data)
     } catch (error) {
       console.log(error)
     }
@@ -173,7 +170,7 @@ export class ConnectStore {
 
       this.setInvites(res.data)
 
-      console.log(res.data)
+      //console.log(res.data)
     } catch (error) {
       console.log(error)
     }

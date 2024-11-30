@@ -1,6 +1,6 @@
 const Tasks = () => {
   return (
-    <div className="relative h-full w-[93%] rounded mx-auto bg-[#0a3d00]/50 border border-[#8cc63f] p-4">
+    <div className="relative w-[93%] rounded mx-auto bg-[#0a3d00]/50 border border-[#8cc63f] p-4 h-[calc(100%-11.5rem)]">
       <div className="pb-4 border-b border-[#ffd700]">
         <h1 className="pb-2 text-3xl font-bold text-[#ffd700] font-body">
           Complete Tasks!
