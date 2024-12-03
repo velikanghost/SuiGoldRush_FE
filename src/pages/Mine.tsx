@@ -51,6 +51,10 @@ const Mine = () => {
 
   return (
     <section className="flex flex-col items-center justify-between h-full px-4">
+      {/* <img
+        src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1733235449/cloud_m7bjph.webp"
+        alt=""
+      /> */}
       <div className="relative z-50 w-full rounded mx-auto bg-[#0a3d00]/50 border border-[#8cc63f] p-3 flex justify-between gap-1">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1">

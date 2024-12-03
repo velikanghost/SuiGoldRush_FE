@@ -9,6 +9,9 @@ export class CountStore {
   BASE_URL = import.meta.env.VITE_APP_BASE_URL
   count: number = 0
   tapCost: number = 0
+  //audio = new Audio('/pickup_gold.mp3')
+  audioContext = new window.AudioContext()
+  soundBuffer: any = {}
 
   constructor(connectStore: ConnectStore) {
     this.connectStore = connectStore
@@ -16,12 +19,30 @@ export class CountStore {
     setInterval(() => {
       this.syncMetricsToDb()
     }, 900000)
+    //this.audio.load()
+
+    fetch('/pickup_gold.mp3')
+      .then((response) => response.arrayBuffer())
+      .then((arrayBuffer) => this.audioContext.decodeAudioData(arrayBuffer))
+      .then((buffer) => {
+        this.soundBuffer = buffer
+      })
 
     //this.startDailyResetTimer()
   }
 
   tapTractor = () => {
     if (this.connectStore.userMetrics.energy > 0) {
+      // if (this.audio.paused) {
+      //   this.audio.currentTime = 0
+      //   this.audio.play()
+      // }
+
+      const source = this.audioContext.createBufferSource()
+      source.buffer = this.soundBuffer
+      source.connect(this.audioContext.destination)
+      source.start(0)
+
       this.connectStore.userMetrics.gold_coins +=
         this.connectStore.tractor.multiplier
       this.connectStore.userMetrics.energy -= 1
