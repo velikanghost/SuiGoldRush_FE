@@ -83,14 +83,18 @@ body {
   background: transparent;
 }
 
-.home_section {
-  background: url('https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731423599/background_fgewog.jpg');
+.waitlist_section {
+  background-color: #f9f6ee; //faecc6;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
   height: 100vh;
   width: 100%;
   overflow: hidden;
+}
+
+.waitlist_sheet svg {
+  display: none;
 }
 
 input[type='number']::-webkit-inner-spin-button,
@@ -101,16 +105,6 @@ input[type='number']::-webkit-outer-spin-button {
 
 input[type='number'] {
   -moz-appearance: textfield;
-}
-
-.mine_section {
-  background: url('https://res.cloudinary.com/dwz1rvu5m/image/upload/v1733235449/mine_bakg_k2hc4a.webp');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  height: 100vh;
-  width: 100%;
-  overflow: hidden;
 }
 
 @keyframes tossCoin {

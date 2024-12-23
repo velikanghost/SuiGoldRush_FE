@@ -2,11 +2,13 @@ import { Invites, Leaderboard, Metrics, Tractor, User } from '@/lib/types/all'
 import axios from 'axios'
 import { makeAutoObservable, runInAction } from 'mobx'
 import telegramService from '../lib/utils'
+import { toast } from 'sonner'
 
 export class ConnectStore {
   API_KEY = import.meta.env.VITE_APP_API_KEY
   BASE_URL = import.meta.env.VITE_APP_BASE_URL
   rushing: boolean = true
+  isWaitlisted: boolean = false
   localMetrics: Metrics = {
     gold_coins: 0,
     user_rank: 0,
@@ -78,6 +80,37 @@ export class ConnectStore {
     if (savedMetrics) {
       runInAction(() => {
         this.localMetrics = JSON.parse(savedMetrics)
+      })
+    }
+  }
+
+  joinWaitlist = async (waitlistData: {
+    email: string
+    twitterUsername: string
+  }) => {
+    try {
+      const res = await axios.post(
+        `${this.BASE_URL}/api/user/register-waitlist?telegram_username=${this.user.username}&email=${waitlistData.email}&twitter_username=${waitlistData.twitterUsername}`,
+        {},
+        {
+          headers: {
+            Accept: 'application/json',
+            'x-api-key': this.API_KEY,
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+
+      console.log(res)
+
+      if (res.status === 200) {
+        this.setIsWaitlisted(true)
+      }
+    } catch (error) {
+      console.log(error)
+      toast('Failed to add to waitlist', {
+        description: 'Please check your inputs and try again!',
+        position: 'top-right',
       })
     }
   }
@@ -202,5 +235,9 @@ export class ConnectStore {
 
   setRushing = (value: boolean) => {
     this.rushing = value
+  }
+
+  setIsWaitlisted = (value: boolean) => {
+    this.isWaitlisted = value
   }
 }
