@@ -70,20 +70,7 @@ const Waitlist = () => {
   return (
     <div className="container px-6 mx-auto flex flex-col items-center justify-center min-h-screen text-[#4A403A]">
       {isWaitlisted ? (
-        <Sheet
-          open={isWaitlisted} // Control visibility
-          //   onOpenChange={(isOpen) =>
-          //     setWalletActionSheetOpen(isOpen ? action.index : null)
-          //   }
-        >
-          {/* <SheetTrigger
-            asChild
-            className="bg-[#DBA24D] text-[#4A403A] shadow-lg p-3 text-sm flex flex-1 flex-col justify-center items-center gap-1 rounded"
-          >
-            <div>
-              <button className="font-medium">close</button>
-            </div>
-          </SheetTrigger> */}
+        <Sheet open={isWaitlisted}>
           <SheetContent
             className="flex flex-col items-center justify-center h-full bg-wallet waitlist_sheet"
             side="bottom"
@@ -120,8 +107,8 @@ const Waitlist = () => {
                   <p className="mb-4 ">
                     We've added{' '}
                     <span className="font-semibold">{waitlistData.email}</span>{' '}
-                    to our waitlist. You'll be notified you as soon as we're
-                    ready to welcome you aboard!
+                    to our waitlist raffle. <br /> You'll be notified you as
+                    soon as we're ready to welcome you aboard!
                   </p>
                   <p className="text-sm text-gray-500">
                     While you wait, follow us on social media for more updates.
@@ -153,7 +140,7 @@ const Waitlist = () => {
           <img
             src="https://res.cloudinary.com/dwz1rvu5m/image/upload/v1731425317/logo_1_tmtgnf.png"
             alt="logo"
-            className="relative z-20 px-4 mb-6"
+            className="px-4 mb-6"
           />
           <h1 className="mb-1 text-2xl font-bold">Join Our Waitlist</h1>
           <p className="mb-6 text-lg">Be the first to know when we launch!</p>

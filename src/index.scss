@@ -8,6 +8,12 @@
 body {
   font-family: 'Raleway', sans-serif;
   box-sizing: border-box;
+
+  //under experiment
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 .btn_primary {
@@ -84,12 +90,16 @@ body {
 }
 
 .waitlist_section {
-  background-color: #f9f6ee; //faecc6;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  height: 100vh;
+  background-color: #f9f6ee;
   width: 100%;
+
+  //under experiment
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  //under experiment
+
   overflow: hidden;
 }
 
